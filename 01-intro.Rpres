@@ -1,0 +1,171 @@
+Working with data
+========================================================
+author: Christophe Lalanne
+date: October 8th, 2013
+
+
+```{r, include=FALSE}
+library(xtable)
+library(knitcitations)
+cite_options(tooltip=TRUE)
+bib <- read.bibtex("refs.bib")
+opts_chunk$set(cache=TRUE)
+```
+
+========================================================
+type: sub-section
+
+> The plural of anecdote is (not) data.
+
+<small>
+<http://blog.revolutionanalytics.com/2011/04/the-plural-of-anecdote-is-data-after-all.html>
+</small>
+
+The world of data
+========================================================
+
+Data come in various forms, and they are gathered from many different sources:
+
+- personal daily records
+- observational studies
+- controlled experiments
+- historical archives
+- national surveys, etc.
+
+They almost always require preprocessing, cleaning, and recoding---and this often amounts to 60% of the whole statistical project.
+
+How to collect data
+========================================================
+
+- **simple random sampling:** each individual from the population has the same probability of being selected; this is usually done **without replacement** (e.g., surveys, psychological experiment, clinical trials).
+- systematic random sampling, (two-stage) cluster sampling, stratified sampling, etc.
+
+In the end, we must have a random sample of statistical units with single or multiple observations on each unit. With this sample, we usually aim at inferring some properties at the level of the population from which this representative sample was drawn.
+
+
+How to store data
+========================================================
+
+Better to rely on **plain text files** (space, tab or comma-delimited) or **database** (SQL family) whenever possible: 
+- easy access to data (in an OS agnostic way)
+- availability of reliable query languages
+- recording of each data step in text files
+- easy storage and sharing of data
+
+The last two points are part of what is called **reproducible research**.
+
+Data format
+========================================================
+
+- full sample single CSV file
+- binary data files (`.mat`, `.sav`, `.dta`)
+- individual data files, possibly compressed (globbing)
+
+Data can also be served through different files, e.g. dual files (e.g., Nifti `.hdr`+`.img`, or PLINK `.bed`+`.bim`).
+
+A ready to use data set
+========================================================
+
+Observers rated relatedness of pairs of images of children that were either siblings or not on a 11-point scale. 
+
+```{r, echo=FALSE, results='asis'}
+data(Faces, package="MPDiR")
+#head(Faces, n=4, addrownums=FALSE)
+print(xtable(head(Faces)), type="html")
+```
+
+<small>Maloney, L. T., and Dal Martello, M. F. (2006). Kin recognition and the perceived facial similarity of children. Journal of Vision, 6(10):4, 1047–1056, http://journalofvision.org/6/10/4/.</small>
+
+Real-life data
+========================================================
+
+Raw data generally require [**data cleansing**](http://bit.ly/19BqCen).
+
+```{r, echo=FALSE, results='asis'}
+d <- read.csv("./data/raw.csv")[-1,]
+print(xtable(d), type="html", include.rownames=FALSE)
+```
+
+What does `recover` = 0 mean? Are negative values allowed for `session`? Leading zeros in IDs are lost.
+
+    id,centre,sex,age,session,recover
+    ,,,,years,
+    01017,01,1,23,8,0
+
+Data analysis as an iterative process
+========================================================
+
+![](./img/fig-repl_stats.png)
+***
+- importing
+- manipulating
+- plotting
+- transforming
+- aggregating
+- summarizing
+- modelling
+- reporting
+
+
+Getting started with R
+========================================================
+
+[R](http://www.r-project.org) is a statistical package for working with data `r citep(bib[c("ihaka96","venables02")])`. It features most of modern statistical tools, and convenient functions to import, manipulate and visualize even high-dimensional data sets. There is usually no need to switch to another program throughout project management. 
+
+It is open-source (GPL licence), and it has a very active community of users ([r-help](https://stat.ethz.ch/mailman/listinfo/r-help), [Stack Overflow](http://stackoverflow.com/questions/tagged/r)). 
+
+Moreover, some mathematical or statistical packages (e.g., Mathematica, SPSS) feature built-in plugins to interact with R. It can also be used with Python ([rpy2](http://rpy.sourceforge.net/rpy2.html)). 
+
+This is not a cliquodrome
+========================================================
+
+R is interactive ([read-eval-print loop](http://bit.ly/1axiCiM)) and can be used as a simple calculator, but there is no single point-and-click UI:
+```{r}
+r <- 5
+2*pi*r^2
+```
+
+Basically, R interprets commands that are sent by the user, and returns an output (which might be nothing). 
+
+Many additional **packages** are available on <http://cran.r-project.org>, but we will limit ourselves to the core facilities.
+
+RStudio
+========================================================
+
+[RStudio](http://www.rstudio.com/) offers a clever, non-intrusive, interface to R, including specific panels for the R console, history, workspace, plots, help, packages management. 
+
+It now features project management, version control, and it has built-in support for automatic reporting through the Markdown language.
+
+- John Verzani (2011). [*Getting started with RStudio*](http://shop.oreilly.com/product/0636920021278.do). O'Reilly Media.
+- Mark P.J. van der Loo, Edwin de Jonge (2012). [*Learning RStudio for R Statistical Computing*](http://www.packtpub.com/learning-rstudio-for-r-statistical-computing/book). Packt Publishing.
+
+
+Interacting with R
+========================================================
+
+The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions, in R parlance).
+
+```{r load}
+
+```
+
+
+
+Compute the frequency of head
+========================================================
+type: prompt
+
+Let's say we are rolling a fair dice several times. Heads are codes as 1, tails as 0. 
+
+Given the following sequence, what is the number of zeros?
+```{r}
+x <- sample(c(0,1), 10, replace=TRUE)
+print(x)
+```
+
+References
+========================================================
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
