@@ -2,19 +2,21 @@ Working with data
 ========================================================
 author: Christophe Lalanne
 date: October 8th, 2013
+css: custom.css
 
 
 
 
-
+Synopsis
 ========================================================
 type: sub-section
 
-> The plural of anecdote is (not) data.
-
+The plural of anecdote is (not) data.  
 <small>
 <http://blog.revolutionanalytics.com/2011/04/the-plural-of-anecdote-is-data-after-all.html>
 </small>
+
+> What are data • How do we collect data • How do we store data • How to process data with R
 
 The world of data
 ========================================================
@@ -49,14 +51,16 @@ Better to rely on **plain text files** (space, tab or comma-delimited) or **data
 
 The last two points are part of what is called **reproducible research**.
 
-Data format
+Data processing
 ========================================================
 
 - full sample single CSV file
 - binary data files (`.mat`, `.sav`, `.dta`)
-- individual data files, possibly compressed (globbing)
+- individual data files, possibly compressed (require globbing)
 
-Data can also be served through different files, e.g. dual files (e.g., Nifti `.hdr`+`.img`, or PLINK `.bed`+`.bim`).
+Data can also be served through different files, e.g. dual files like Nifti `.hdr`+`.img`, or PLINK `.bed`+`.bim` (require merging).
+
+Text-based data file are generally easy to process with many text processing programs, e.g., sed, awk, Perl (<span class="showtooltip" title="Chambers J (2008). Software for Data Analysis. Programming with R. Springer."><a href="">Chambers, 2008</a></span>), but we will see that R offers nice facilities for that kind of stuff too.
 
 A ready to use data set
 ========================================================
@@ -64,7 +68,7 @@ A ready to use data set
 Observers rated relatedness of pairs of images of children that were either siblings or not on a 11-point scale. 
 
 <!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Tue Sep 10 16:15:28 2013 -->
+<!-- Wed Sep 11 15:36:05 2013 -->
 <TABLE border=1>
 <TR> <TH>  </TH> <TH> SimRating </TH> <TH> sibs </TH> <TH> agediff </TH> <TH> gendiff </TH> <TH> Obs </TH> <TH> Image </TH>  </TR>
   <TR> <TD align="right"> 1 </TD> <TD align="right"> 10.00 </TD> <TD> 1 </TD> <TD align="right"> 29.00 </TD> <TD> diff </TD> <TD> S1 </TD> <TD> Im1 </TD> </TR>
@@ -84,7 +88,7 @@ Real-life data
 Raw data generally require [**data cleansing**](http://bit.ly/19BqCen).
 
 <!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Tue Sep 10 16:15:28 2013 -->
+<!-- Wed Sep 11 15:36:05 2013 -->
 <TABLE border=1>
 <TR> <TH> id </TH> <TH> centre </TH> <TH> sex </TH> <TH> age </TH> <TH> session </TH> <TH> recover </TH>  </TR>
   <TR> <TD align="right"> 1017 </TD> <TD align="right">   1 </TD> <TD align="right">   1 </TD> <TD> 23 </TD> <TD> 8 </TD> <TD align="right">   0 </TD> </TR>
@@ -94,8 +98,9 @@ Raw data generally require [**data cleansing**](http://bit.ly/19BqCen).
    </TABLE>
 
 
-What does `recover` = 0 mean? Are negative values allowed for `session`? Leading zeros in IDs are lost.
+What does `recover` = 0 or `sex` = 1 mean? Are negative values allowed for `session`? Leading zeros in IDs and centre number are lost.
 
+    $ head -n 3 data/raw.csv
     id,centre,sex,age,session,recover
     ,,,,years,
     01017,01,1,23,8,0
@@ -124,14 +129,14 @@ It is open-source (GPL licence), and it has a very active community of users ([r
 
 Moreover, some mathematical or statistical packages (e.g., Mathematica, SPSS) feature built-in plugins to interact with R. It can also be used with Python ([rpy2](http://rpy.sourceforge.net/rpy2.html)). 
 
-This is not a cliquodrome
+R is not a cliquodrome
 ========================================================
 
-R is interactive ([read-eval-print loop](http://bit.ly/1axiCiM)) and can be used as a simple calculator, but there is no single point-and-click UI:
+R is interactive ([read-eval-print loop](http://bit.ly/1axiCiM)) and can be used as a simple calculator:
 
 ```r
 r <- 5
-2*pi*r^2
+2 * pi * r^2
 ```
 
 ```
@@ -140,8 +145,9 @@ r <- 5
 
 
 Basically, R interprets commands that are sent by the user, and returns an output (which might be nothing). 
+The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions).
 
-Many additional **packages** are available on <http://cran.r-project.org>, but we will limit ourselves to the core facilities.
+Many additional **packages** are available on <http://cran.r-project.org>, and we will use few of them.
 
 RStudio
 ========================================================
@@ -157,10 +163,119 @@ It now features project management, version control, and it has built-in support
 Interacting with R
 ========================================================
 
-The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions, in R parlance).
+Here is a sample session. 
+
+First, we **load some data** into R:
+
+```r
+bs <- read.table(file = "./data/brain_size.dat", 
+                 header = TRUE, na.strings = ".")
+head(bs, n = 2)
+```
+
+```
+  Gender FSIQ VIQ PIQ Weight Height MRI_Count
+1 Female  133 132 124    118   64.5    816932
+2   Male  140 150 124     NA   72.5   1001121
+```
+
+
+Rectangular data set
+========================================================
+
+Here is how the data would look under a spreedsheat program:
+
+![excel](./img/brain_size.png)
+
+Variables are arranged in columns, while each line represents an individual (i.e., a statistical unit).
+
+Querying data properties with R
+========================================================
+
+Let's look at some of the properties of the imported data set:
+
+```r
+dim(bs)
+```
+
+```
+[1] 40  7
+```
+
+```r
+names(bs)[1:4]
+```
+
+```
+[1] "Gender" "FSIQ"   "VIQ"    "PIQ"   
+```
+
+There are 40 individuals and 7 variables. Variables numbered 1 to 4 are: gender, full scale IQ, verbal IQ, and performance IQ.
+
+Querying data properties with R
+========================================================
+title: false
+
+Now, here is how observed values for each variable are represented internally:
+
+```r
+str(bs, vec.len = 1)
+```
+
+```
+'data.frame':	40 obs. of  7 variables:
+ $ Gender   : Factor w/ 2 levels "Female","Male": 1 2 ...
+ $ FSIQ     : int  133 140 ...
+ $ VIQ      : int  132 150 ...
+ $ PIQ      : int  124 124 ...
+ $ Weight   : int  118 NA ...
+ $ Height   : num  64.5 72.5 ...
+ $ MRI_Count: int  816932 1001121 ...
+```
+
+
+Variables are either **numeric** (continuous or discrete) or **categorical** (with ordered or unordered levels). 
+
+Note that there exist other representation for date, censored variable, or strings.
+
+Inspecting variables
+========================================================
 
 
 
+```r
+head(bs$Gender)
+```
+
+```
+[1] Female Male   Male   Male   Female Female
+Levels: Female Male
+```
+
+```r
+head(bs$FSIQ)
+```
+
+```
+[1] 133 140 139 133 137  99
+```
+
+```r
+summary(bs$Weight)
+```
+
+```
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+    106     135     146     151     172     192       2 
+```
+
+```r
+sum(is.na(bs$Weight))
+```
+
+```
+[1] 2
+```
 
 
 
@@ -178,12 +293,15 @@ print(x)
 ```
 
 ```
- [1] 1 0 0 1 0 0 0 1 1 0
+ [1] 0 1 0 1 0 1 0 1 0 1
 ```
 
 
 References
 ========================================================
+
+Chambers J (2008). _Software for Data Analysis. Programming with
+R_. Springer.
 
 Ihaka R and Gentleman R (1996). "R: A language for data analysis
 and graphics." _Journal of Computational and Graphical

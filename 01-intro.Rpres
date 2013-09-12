@@ -2,7 +2,7 @@ Working with data
 ========================================================
 author: Christophe Lalanne
 date: October 8th, 2013
-
+css: custom.css
 
 ```{r, include=FALSE}
 library(xtable)
@@ -10,16 +10,19 @@ library(knitcitations)
 cite_options(tooltip=TRUE)
 bib <- read.bibtex("refs.bib")
 opts_chunk$set(cache=TRUE)
+options(reindent.spaces=2)
 ```
 
+Synopsis
 ========================================================
 type: sub-section
 
-> The plural of anecdote is (not) data.
-
+The plural of anecdote is (not) data.  
 <small>
 <http://blog.revolutionanalytics.com/2011/04/the-plural-of-anecdote-is-data-after-all.html>
 </small>
+
+> What are data • How do we collect data • How do we store data • How to process data with R
 
 The world of data
 ========================================================
@@ -54,14 +57,16 @@ Better to rely on **plain text files** (space, tab or comma-delimited) or **data
 
 The last two points are part of what is called **reproducible research**.
 
-Data format
+Data processing
 ========================================================
 
 - full sample single CSV file
 - binary data files (`.mat`, `.sav`, `.dta`)
-- individual data files, possibly compressed (globbing)
+- individual data files, possibly compressed (require globbing)
 
-Data can also be served through different files, e.g. dual files (e.g., Nifti `.hdr`+`.img`, or PLINK `.bed`+`.bim`).
+Data can also be served through different files, e.g. dual files like Nifti `.hdr`+`.img`, or PLINK `.bed`+`.bim` (require merging).
+
+Text-based data file are generally easy to process with many text processing programs, e.g., sed, awk, Perl `r citep(bib["chambers08"])`, but we will see that R offers nice facilities for that kind of stuff too.
 
 A ready to use data set
 ========================================================
@@ -86,8 +91,9 @@ d <- read.csv("./data/raw.csv")[-1,]
 print(xtable(d), type="html", include.rownames=FALSE)
 ```
 
-What does `recover` = 0 mean? Are negative values allowed for `session`? Leading zeros in IDs are lost.
+What does `recover` = 0 or `sex` = 1 mean? Are negative values allowed for `session`? Leading zeros in IDs and centre number are lost.
 
+    $ head -n 3 data/raw.csv
     id,centre,sex,age,session,recover
     ,,,,years,
     01017,01,1,23,8,0
@@ -116,18 +122,19 @@ It is open-source (GPL licence), and it has a very active community of users ([r
 
 Moreover, some mathematical or statistical packages (e.g., Mathematica, SPSS) feature built-in plugins to interact with R. It can also be used with Python ([rpy2](http://rpy.sourceforge.net/rpy2.html)). 
 
-This is not a cliquodrome
+R is not a cliquodrome
 ========================================================
 
-R is interactive ([read-eval-print loop](http://bit.ly/1axiCiM)) and can be used as a simple calculator, but there is no single point-and-click UI:
+R is interactive ([read-eval-print loop](http://bit.ly/1axiCiM)) and can be used as a simple calculator:
 ```{r}
 r <- 5
-2*pi*r^2
+2 * pi * r^2
 ```
 
 Basically, R interprets commands that are sent by the user, and returns an output (which might be nothing). 
+The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions).
 
-Many additional **packages** are available on <http://cran.r-project.org>, but we will limit ourselves to the core facilities.
+Many additional **packages** are available on <http://cran.r-project.org>, and we will use few of them.
 
 RStudio
 ========================================================
@@ -143,12 +150,57 @@ It now features project management, version control, and it has built-in support
 Interacting with R
 ========================================================
 
-The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions, in R parlance).
+Here is a sample session. 
 
+First, we **load some data** into R:
 ```{r load}
-
+bs <- read.table(file = "./data/brain_size.dat", 
+                 header = TRUE, na.strings = ".")
+head(bs, n = 2)
 ```
 
+Rectangular data set
+========================================================
+
+Here is how the data would look under a spreedsheat program:
+
+![excel](./img/brain_size.png)
+
+Variables are arranged in columns, while each line represents an individual (i.e., a statistical unit).
+
+Querying data properties with R
+========================================================
+
+Let's look at some of the properties of the imported data set:
+```{r object}
+dim(bs)
+names(bs)[1:4]
+```
+There are 40 individuals and 7 variables. Variables numbered 1 to 4 are: gender, full scale IQ, verbal IQ, and performance IQ.
+
+Querying data properties with R
+========================================================
+title: false
+
+Now, here is how observed values for each variable are represented internally:
+```{r}
+str(bs, vec.len = 1)
+```
+
+Variables are either **numeric** (continuous or discrete) or **categorical** (with ordered or unordered levels). 
+
+Note that there exist other representation for date, censored variable, or strings.
+
+Inspecting variables
+========================================================
+
+
+```{r}
+head(bs$Gender)
+head(bs$FSIQ)
+summary(bs$Weight)
+sum(is.na(bs$Weight))
+```
 
 
 Compute the frequency of head

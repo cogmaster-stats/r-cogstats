@@ -1,0 +1,23 @@
+.reveal pre {   
+  margin-top: 0;
+  border: 1px solid #ccc;
+  white-space: pre-wrap;
+  margin-bottom: 1em;
+}
+
+.reveal pre code {
+  display: block;
+  padding: 0.25em;
+  font-size: 1.2em;
+  line-height: 1.1em;
+  background-color: white;
+  overflow: visible;
+  max-height: none;
+  word-wrap: normal;
+/*  font-family: 'Inconsolata'; */
+}
+
+
+div.focus {
+   background: #FFEDCD;
+}
