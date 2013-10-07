@@ -1,0 +1,56 @@
+Workshop on statistical analysis of experimental data
+========================================================
+author: Christophe Lalanne
+date: October 8th, 2013
+css: custom.css
+
+What will you learn
+========================================================
+
+This course is a short and practical introduction to statistical analysis of experimental data. 
+
+* We will not cover mathematical statistics, but we will focus on **applied statistics**.
+* We will not provide a complete account of statistical modeling.
+* Examples will come from various disciplines: experimental psychology, social science, medicine, biomedical engineering.
+* We will try to emphasize the interpretation of results, and how to get them right.
+
+
+Schedule
+========================================================
+
+Christophe Lalanne [R, 1–6], Sylvain Charron and Gaël Varoquaux [Python, 7–11].
+
+1. Working with Data (Oct. 8)
+2. Descriptive statistics, two-group comparisons (Oct. 15)
+3. ANOVA and design of experiments (Oct. 22)
+4. More advanced ANOVA (Oct. 29)
+5. Linear regression (Nov. 5)
+6. Other regression models (Nov. 12)
+
+Sessions 7 to 11 with Python will be detailed later.
+
+
+Organization
+========================================================
+
+* Time: 9:00–11:30, every Tuesday
+* Prerequisites: basic math and experimental design
+* Statistical packages: R (sessions 1 to 6), Python (sessions 7 to 11)
+* Resources: Handouts available on Github, open access textbook
+* Homeworks: short exercices to complete at home
+* Grading: 50% assignements, 50% final project
+
+Website: http://cogmaster-stats.github.io/site
+
+Textbook
+========================================================
+
+OpenIntro Statistics 2nd Edition, 426 pages  
+http://www.openintro.org/stat/
+
+* 10 to 15 pages to read each week, before the course
+* Additional information will be given during the course
+
+---
+
+![openintrostats](./img/openintrostats.png)
