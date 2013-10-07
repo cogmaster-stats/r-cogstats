@@ -1,0 +1,325 @@
+Lab 1 : Getting started with R
+------------------------------
+``` {r setup, cache=FALSE, include=FALSE}
+opts_knit$set(echo=FALSE, message=FALSE, progress=FALSE, 
+              cache=TRUE, verbose=FALSE, tidy=TRUE)
+opts_knit$set(aliases=c(h='fig.height', w='fig.width',
+                cap='fig.cap', scap='fig.scap'))
+opts_knit$set(eval.after = c('fig.cap','fig.scap'))
+knit_hooks$set(document = function(x) {
+  gsub('(\\\\end\\{knitrout\\}[\n]+)', '\\1\\\\noindent ', x)
+})
+library(knitcitations)
+cite_options(tooltip=FALSE)
+bib <- read.bibtex("refs.bib")
+options(width=80)
+library(latticeExtra)
+trellis.par.set(custom.theme.2())
+```
+
+This document is written using R Markdown. The source code is available in [01-intro-lab.R](01-intro-lab.R).
+
+#### Learning objectives
+
+> * Create and manipulate vectors (numeric and factor)
+> * Compute basic summary statistics
+> * Manipulate rectangular data structure (data frames)
+> * Interact with external data sets
+
+## Basic data management
+
+There are several types of `objects' in R. For the time being, we will
+mainly focus on **vectors** and **data frames**.
+
+
+### Working with vectors
+Suppose that we recorded the following reaction times in a simple
+psychophysical experiment: `r citep(bib["heathcote96"])`
+
+    474.688  506.445  524.081  530.672  530.869
+    566.984  582.311  582.940  603.574  792.358
+
+We can represent this series of measurements as follows:
+``` {r vector}
+x <- c(474.688, 506.445, 524.081, 530.672, 530.869,
+       566.984, 582.311, 582.940, 603.574, 792.358)
+```
+
+Note that the decimal point follows English notation. It is also [recommended](http://stackoverflow.com/q/1741820/420055) to use `<-` instead of `=` for variable assignment.
+Now, to display the values, we can simply type `x` at the R prompt:
+```{r display}
+x
+```
+
+We can access the first or third element of `x` (i.e., the first observation) by using the corresponding index position (integers starting at 1) enclosed in square brackets:
+```{r index}
+x[1]
+x[3]
+```
+
+![vector](./img/vector.png)
+
+We could also display the first three observations using range notation or by giving explicit values, e.g.
+```{r index2}
+x[1:3]
+x[c(1, 2, 3)]
+```
+
+We can check that there are 10 observations in total, and what are the minimum and maximum values, for instance, using R functions:
+```{r length}
+length(x)
+min(x)
+max(x)
+```
+
+The latter can be grouped together using `c()` (*c* oncatenate), e.g.
+```{r concatenate}
+c(min(x), max(x))
+```
+or, in shorter form, 
+```{r range, eval=FALSE}
+range(x)
+```
+
+Moreover, we can save the above results in another variable, say, `res`:
+```{r assign}
+res <- c(min(x), max(x))
+```
+
+To display values stored in `res`, we would just type the name of the variable at R prompt or use `print(res)`. However, in interactive mode, we rarely need to use a `print()` statement:
+```{r print, eval=FALSE}
+res
+print(res)
+```
+
+R has a lot of built-in commands, including functions for basic data transformation and arithmetic operations.
+```{r add}
+x[1] + x[2]
+```
+or equivalently
+```{r add2, eval=FALSE}
+sum(x[1:2])
+```
+
+To convert values stored in `x` to their log counterpart (by default, natural logarithm), we would use:
+```{r log}
+log(x)
+```
+
+In most case, it is useless to write explicit loop when we can benefit from R vectorized operations. (Note that in the following example the `print()` statement is mandatory.)
+```{r loop}
+for (i in 1:10) print(log(x[i]))
+```
+
+Note, however, that using a statement like
+```{r erase, eval=FALSE}
+x <- log(x)
+```
+would replace all values of `x` by their log. Old values would be lost by doing so.
+
+Missing values are represented by the symbol `NA` (*n* ot *a* vailable). 
+
+```{r missing}
+x[5]
+x[5] <- NA
+x
+```
+
+We can check at any time what variables are available in R workspace with `ls()`: (You can safely ignore the `bib` variable.)
+```{r ls}
+ls()
+```
+Don't forget the parentheses! To delete a variable, we can use `rm(x)`, for example.
+
+#### Your turn
+
+> 1. Display the last two observations.
+> 2. Compute the minimum and maximum values of the updated variable `x`. See `help(min)` or `help(max)`.
+> 3. How would you replace the 5th observation (set to missing) with the mean computed from the remaining observations. See `help(mean)`.
+
+
+### Categorical variables and factors
+
+In the preceding section, we have discussed the representation of numerical values in R. Categorical variables are best expressed as **factor** in R, rather than simple strings.
+
+In the following example, we generate 10 random values (`male` or `female`) for a variable `gender`. Sampling is done with replacement.
+```{r sample}
+gender <- sample(c("male", "female"), size=10, replace=TRUE)
+gender
+str(gender)
+```
+
+As `gender` is just a vector of strings, we will convert it to a factor using the `factor()`: R will now associate levels to unique values found in `gender`.
+```{r factor}
+gender <- factor(gender)
+str(gender)
+```
+
+We can tabulate `gender`'s levels using `table()`:
+```{r table}
+table(gender)
+```
+
+Here is another example where we start with numeric codes, and then associate labels to each code.
+```{r label}
+cond <- c(1, 2, 1, 2, 2, 2, 1, 1, 2)
+table(cond)
+cond <- factor(cond, levels=c(1,2), labels=c("A", "B"))
+table(cond)
+```
+
+
+
+### More complex data structure
+
+Data frames are special R objects that can hold mixed data type (numeric and factor)
+
+Suppose you are now given two series of RTs, which were collected in two separate sessions on the same 10 subjects: (example from `help(timefit, package=retimes)`)
+```{r twogroup}
+x1 <- c(451.536,958.612,563.538,505.735,1266.825,
+        860.663,457.707,268.679,587.303,669.594)
+x2 <- c(532.474,525.185,1499.471,480.732,631.752,
+        672.419,322.341,571.356,428.832,680.848)
+```
+
+It is easy to manipulate these two vectors separately. To compute the mean in each condition, we would use
+```{r mean}
+mean(x1)
+mean(x2)
+```
+
+Likewise, to get reaction times for the first individual we would write
+```{r getone}
+x1[1]
+x2[1]
+```
+
+A more convenient way to represent such data is to make it explicit that data are ordered and that each pair of values correspond to the same subject. A first attempt would be to simply create a 2-column matrix, like this
+```{r matrix}
+x12 <- cbind(x1, x2)
+head(x12, n=3)  # or x12[1:3,]
+```
+
+In this case, line numbers (row names in R parlance) would help to identify each subject. However, it would be more elegant to explicitly create a variable holding subjects' ID.
+
+```{r dfr}
+id <- paste("id", 1:10, sep="")
+id
+d <- data.frame(id, x1, x2)
+head(d)
+```
+
+#### Your turn
+
+> 1. Display the second RT for the 8th subject.
+> 2. Compute the range of observed values for the first session (`x1`).
+> 3. Check whether all individual values are greater in the second session, compared to the first session.
+
+Here is an alternate way for representing for the same data set, this time using two variables to code for subjects and condition number, and one variable holding associated RTs. We will use an external package that should be installed first in R library.
+```{r reshape}
+if (!require(reshape2)) install.packages("reshape2")
+dm <- melt(d)
+head(dm)
+```
+
+Note that if the package is already installed on your system, you can simply type
+```{r package, eval=FALSE}
+library(reshape2)
+```
+
+Our data frame now has `r nrow(dm)` lines, instead of `r nrow(d)` (`d`).
+```{r summary}
+summary(dm)
+str(dm)
+```
+
+We can access any variable by using the name of the data frame, followed by the name of the variable as follows:
+```{r getvar}
+dm$variable
+```
+
+
+Among other things, it is now possible to index values of the response variable depending on the values taken by other variables, like in a dictionnary (key-value). E.g., 
+```{r dict}
+dm$value[dm$variable == "x1"]
+```
+or
+```{r dict2}
+dm$variable[dm$value > 567]  # dm$variable[dm$value > median(dm$variable)]
+```
+
+Finally, should we want to update variable names, we could use:
+```{r rename}
+names(dm) <- c("subject", "condition", "RT")
+head(dm, n=3)
+```
+
+#### Your turn
+
+> 1. There is a 'slight' problem with the way subjects' ID were handled. Can you fix it? See `help(factor)` and the `ordered=` parameter.
+> 2. Display all observed values for the second subject.
+> 3. Compute the range of observed values in the second session.
+
+## Read-write operations
+
+R has a built-in data format to save data files. 
+```{r save}
+save(dm, file="data_lab1.rda")
+```
+We can also use the `.RData` extension. To load data saved as RData files, we can use `load()`. The full pathname should be given to this command. Otherwise, we might want to change our current working directory (`setwd()`, or `Session > Set Working Directory > Choose Directory` in RStudio).
+```{r load}
+load("data_lab.rda")
+```
+
+To save data in CSV format, we will replace `save()` by `write.csv()`. The default settings for this command correspond to English conventions (dot as decimal separator, comma as record separator). A localized version (French) is available with `read.csv2()`.
+```{r writecsv}
+write.csv(dm, file="data_lab1.csv")
+dir(pattern=".csv")
+```
+
+To read a CSV file, we just replace `write.csv()` with `read.csv()`.
+
+```{r readcsv}
+rm(dm)  # clean up the workspace
+dm <- read.csv("data_lab1.csv")
+ls()
+```
+
+More generally, the `read.table()` command can be used to process a large majority of data files (tab or space delimited files, specific codes for missing values, etc.). See `help(read.table)` for more information.
+
+------
+
+## Application 1
+
+Here are the number of words recalled by 5 subjects. Factor levels are given as: Neg, Neu, Pos (http://personality-project.org/).
+
+    Jim, 32, 15, 45
+    Victor, 30, 13, 40
+    Faye, 26, 12, 42
+    Ron, 22, 10, 38
+    Jason, 29, 8, 35
+
+1. Create a data frame to store the above data. The data frame, say `dfrm`, will have 3 columns named `subject`, `condition`, and `words`.
+2. Compute the mean number of words recalled by Victor.
+3. Compute means per condition and all pairwise differences.
+
+If you feel comfortable with IO operations in R, you can work directly with the data file [words.dat](./data/words.dat).
+
+## Application 2
+
+The file [brain_size.csv](./data/brain_size.csv) contains data from a study on the relationship between brain size and weight and intelligence `r citep(bib["willerman91"])`.
+
+1. Load the data file.
+2. Report any missing value (number, variables, etc.).
+3. How many males/females were included in this study?
+4. What is the mean value for full IQ?
+5. What is the mean value for full IQ in males? In females?
+6. What is the average value of MRI counts expressed in log units?
+
+## References
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
+
+
