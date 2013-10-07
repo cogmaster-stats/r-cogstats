@@ -1,10 +1,10 @@
-Workshop on statistical analysis of experimental data
+cogmaster-stats
 ========================================================
 author: Christophe Lalanne
 date: October 8th, 2013
 css: custom.css
 
-What will you learn
+What you will learn
 ========================================================
 
 This course is a short and practical introduction to statistical analysis of experimental data. 
@@ -18,7 +18,7 @@ This course is a short and practical introduction to statistical analysis of exp
 Schedule
 ========================================================
 
-Christophe Lalanne [R, 1–6], Sylvain Charron and Gaël Varoquaux [Python, 7–11].
+<small>Christophe Lalanne [R], Sylvain Charron and Gaël Varoquaux [Py].</small>
 
 1. Working with Data (Oct. 8)
 2. Descriptive statistics, two-group comparisons (Oct. 15)
@@ -45,12 +45,24 @@ Website: http://cogmaster-stats.github.io/site
 Textbook
 ========================================================
 
-OpenIntro Statistics 2nd Edition, 426 pages  
+OpenIntro Statistics  
 http://www.openintro.org/stat/
 
-* 10 to 15 pages to read each week, before the course
+* 10 to 15 pages to read before each course
 * Additional information will be given during the course
 
 ---
 
 ![openintrostats](./img/openintrostats.png)
+
+
+Setup
+========================================================
+
+* R software: http://www.r-project.org/
+* RStudio: http://www.rstudio.com/
+* An HTML viewer: Chrome, Firefox, Safari, Internet Explorer (not tested)
+
+R slides and handouts are written using RStudio. You will have access to the full code, and you are encouraged to review it before the course.
+
+Note: To compile the HTML slides, you will need the [Preview version](http://www.rstudio.com/ide/download/preview) of RStudio.
