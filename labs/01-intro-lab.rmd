@@ -15,6 +15,7 @@ bib <- read.bibtex("refs.bib")
 options(width=80)
 library(latticeExtra)
 trellis.par.set(custom.theme.2())
+set.seed(101)
 ```
 
 This document is written using R Markdown. The source code is available in [01-intro-lab.R](01-intro-lab.R).
@@ -70,7 +71,7 @@ x[x <= 600]
 ```
 This instruction will return those values of `x` that fulfill the criterion `x less or equal to 600`. If we are interested in returning the position (index) of these values in `x`, we can use
 ```{r logical2}
-which(x[x <= 600])
+which(x <= 600)
 ```
 
 We can check that there are 10 observations in total, and what are the minimum and maximum values of `x`, for instance, using built-in R functions:
@@ -310,11 +311,11 @@ Here are the number of words recalled by 5 subjects. Factor levels are given as:
 2. Compute the mean number of words recalled by Victor.
 3. Compute means per condition and all pairwise differences.
 
-If you feel comfortable with IO operations in R, you can work directly with the data file [words.dat](./data/words.dat).
+If you feel comfortable with IO operations in R, you can work directly with the data file `words.dat`.
 
 ## Application 2
 
-The file [brain_size.csv](./data/brain_size.csv) contains data from a study on the relationship between brain size and weight and intelligence `r citep(bib["willerman91"])`.
+The file `brain_size.csv` contains data from a study on the relationship between brain size and weight and intelligence `r citep(bib["willerman91"])`.
 
 1. Load the data file.
 2. Report any missing value (number, variables, etc.).

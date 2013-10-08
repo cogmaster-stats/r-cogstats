@@ -97,11 +97,11 @@ x[x <= 600]
 This instruction will return those values of `x` that fulfill the criterion `x less or equal to 600`. If we are interested in returning the position (index) of these values in `x`, we can use
 
 ```r
-which(x[x <= 600])
+which(x <= 600)
 ```
 
 ```
-## Error: l'argument 'which' doit être de type logique
+## [1] 1 2 3 4 5 6 7 8
 ```
 
 
@@ -271,7 +271,7 @@ gender
 ```
 
 ```
-##  [1] "female" "female" "female" "male"   "female" "female" "female" "male"  
+##  [1] "male"   "male"   "female" "female" "male"   "male"   "female" "male"  
 ##  [9] "female" "female"
 ```
 
@@ -280,7 +280,7 @@ str(gender)
 ```
 
 ```
-##  chr [1:10] "female" "female" "female" "male" "female" "female" ...
+##  chr [1:10] "male" "male" "female" "female" "male" "male" ...
 ```
 
 
@@ -292,7 +292,7 @@ str(gender)
 ```
 
 ```
-##  Factor w/ 2 levels "female","male": 1 1 1 2 1 1 1 2 1 1
+##  Factor w/ 2 levels "female","male": 2 2 1 1 2 2 1 2 1 1
 ```
 
 
@@ -305,7 +305,7 @@ table(gender)
 ```
 ## gender
 ## female   male 
-##      8      2
+##      5      5
 ```
 
 
@@ -631,11 +631,11 @@ Here are the number of words recalled by 5 subjects. Factor levels are given as:
 2. Compute the mean number of words recalled by Victor.
 3. Compute means per condition and all pairwise differences.
 
-If you feel comfortable with IO operations in R, you can work directly with the data file [words.dat](./data/words.dat).
+If you feel comfortable with IO operations in R, you can work directly with the data file `words.dat`.
 
 ## Application 2
 
-The file [brain_size.csv](./data/brain_size.csv) contains data from a study on the relationship between brain size and weight and intelligence (<a href="">Willerman et al. 1991</a>).
+The file `brain_size.csv` contains data from a study on the relationship between brain size and weight and intelligence (<a href="">Willerman et al. 1991</a>).
 
 1. Load the data file.
 2. Report any missing value (number, variables, etc.).

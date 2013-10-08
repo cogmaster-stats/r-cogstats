@@ -20,7 +20,7 @@ Organization
 
 * Time: 9:00–11:30, every Tuesday
 * Prerequisites: basic math and experimental design
-* Statistical packages: R (sessions 1 to 6), Python (sessions 7 to 11)
+* Statistical packages: R (sessions 1 to 6), Python (sessions 7 to 10)
 * Resources: Handouts available on Github, open access textbook
 * Homeworks: short exercices to complete at home
 * Grading: 50% assignements, 50% final project
@@ -40,7 +40,7 @@ Schedule
 5. Linear regression (Nov. 5)
 6. Other regression models (Nov. 12)
 
-Sessions 7 to 11 with Python will be detailed later.
+Sessions 7 to 10 with Python will be detailed later.
 
 Textbook
 ========================================================
