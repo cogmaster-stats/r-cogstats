@@ -45,7 +45,7 @@ x
 ```
 
 
-We can access the first or third element of `x` (i.e., the first observation) by using the corresponding index position (integers starting at 1) enclosed in square brackets:
+We can access the first or third element of `x` (i.e., the first observation) by using the corresponding index position (integer starting at 1) enclosed in square brackets:
 
 ```r
 x[1]
@@ -63,8 +63,6 @@ x[3]
 ## [1] 524.1
 ```
 
-
-![vector](./img/vector.png)
 
 We could also display the first three observations using range notation or by giving explicit values, e.g.
 
@@ -84,8 +82,30 @@ x[c(1, 2, 3)]
 ## [1] 474.7 506.4 524.1
 ```
 
+The `c()` (concatenate) command tells R to group together values in a vector. We call such operation **indexation**. When values correspond to different statistical units, this allow to perform individual selection.
 
-We can check that there are 10 observations in total, and what are the minimum and maximum values, for instance, using R functions:
+It is also possible to use **logical filters** to select part of a variable. For example, if we want to keep only values that are less or equal to 600, we would use:
+
+```r
+x[x <= 600]
+```
+
+```
+## [1] 474.7 506.4 524.1 530.7 530.9 567.0 582.3 582.9
+```
+
+This instruction will return those values of `x` that fulfill the criterion `x less or equal to 600`. If we are interested in returning the position (index) of these values in `x`, we can use
+
+```r
+which(x[x <= 600])
+```
+
+```
+## Error: l'argument 'which' doit être de type logique
+```
+
+
+We can check that there are 10 observations in total, and what are the minimum and maximum values of `x`, for instance, using built-in R functions:
 
 ```r
 length(x)
@@ -111,8 +131,7 @@ max(x)
 ## [1] 792.4
 ```
 
-
-The latter can be grouped together using `c()` (*c* oncatenate), e.g.
+The latter can be grouped together using `c()` as seen before, e.g.
 
 ```r
 c(min(x), max(x))
@@ -128,13 +147,13 @@ or, in shorter form,
 range(x)
 ```
 
+since the `range()` function returns the minimum and maximum values of a list of numbers. 
 
 Moreover, we can save the above results in another variable, say, `res`:
 
 ```r
 res <- c(min(x), max(x))
 ```
-
 
 To display values stored in `res`, we would just type the name of the variable at R prompt or use `print(res)`. However, in interactive mode, we rarely need to use a `print()` statement:
 
@@ -160,7 +179,6 @@ or equivalently
 sum(x[1:2])
 ```
 
-
 To convert values stored in `x` to their log counterpart (by default, natural logarithm), we would use:
 
 ```r
@@ -171,8 +189,9 @@ log(x)
 ##  [1] 6.163 6.227 6.262 6.274 6.275 6.340 6.367 6.368 6.403 6.675
 ```
 
+The base for the logarithm can be changed by using the named parameter `base=` when calling the function, e.g. `log(100, base=10)`.
 
-In most case, it is useless to write explicit loop when we can benefit from R vectorized operations. (Note that in the following example the `print()` statement is mandatory.)
+In most cases, it is useless to write an explicit loop when we can benefit from R vectorized operations. (In the following example the `print()` statement is mandatory.)
 
 ```r
 for (i in 1:10) print(log(x[i]))
@@ -192,15 +211,15 @@ for (i in 1:10) print(log(x[i]))
 ```
 
 
-Note, however, that using a statement like
+Variables live in R workspace, and they can be updated at any time. Using a statement like
 
 ```r
 x <- log(x)
 ```
 
-would replace all values of `x` by their log. Old values would be lost by doing so.
+would replace all values of `x` by their log, and old values would be lost.
 
-Missing values are represented by the symbol `NA` (*n* ot *a* vailable). 
+**Missing values** are represented by the symbol `NA` (not available). 
 
 
 ```r
@@ -235,14 +254,14 @@ Don't forget the parentheses! To delete a variable, we can use `rm(x)`, for exam
 
 #### Your turn
 
-> 1. Display the last two observations.
+> 1. Display the last two observations of `x`.
 > 2. Compute the minimum and maximum values of the updated variable `x`. See `help(min)` or `help(max)`.
 > 3. How would you replace the 5th observation (set to missing) with the mean computed from the remaining observations. See `help(mean)`.
 
 
 ### Categorical variables and factors
 
-In the preceding section, we have discussed the representation of numerical values in R. Categorical variables are best expressed as **factor** in R, rather than simple strings.
+In the preceding section, we have discussed the representation of numerical values in R. Categorical variables are best expressed as **factors** in R, rather than simple strings.
 
 In the following example, we generate 10 random values (`male` or `female`) for a variable `gender`. Sampling is done with replacement.
 
@@ -252,8 +271,8 @@ gender
 ```
 
 ```
-##  [1] "male"   "male"   "female" "male"   "female" "female" "female" "male"  
-##  [9] "male"   "male"
+##  [1] "female" "female" "female" "male"   "female" "female" "female" "male"  
+##  [9] "female" "female"
 ```
 
 ```r
@@ -261,7 +280,7 @@ str(gender)
 ```
 
 ```
-##  chr [1:10] "male" "male" "female" "male" "female" "female" ...
+##  chr [1:10] "female" "female" "female" "male" "female" "female" ...
 ```
 
 
@@ -273,7 +292,7 @@ str(gender)
 ```
 
 ```
-##  Factor w/ 2 levels "female","male": 2 2 1 2 1 1 1 2 2 2
+##  Factor w/ 2 levels "female","male": 1 1 1 2 1 1 1 2 1 1
 ```
 
 
@@ -286,7 +305,7 @@ table(gender)
 ```
 ## gender
 ## female   male 
-##      4      6
+##      8      2
 ```
 
 
@@ -315,11 +334,12 @@ table(cond)
 ```
 
 
+To sum up, factors are represented as numerical codes, but it is always a good idea to associate labels to them.
 
 
 ### More complex data structure
 
-Data frames are special R objects that can hold mixed data type (numeric and factor)
+**Data frames** are special R objects that can hold mixed data type (numeric and factor). This is a convenient placeholder for rectangular data sets as we will see later during the course.
 
 Suppose you are now given two series of RTs, which were collected in two separate sessions on the same 10 subjects: (example from `help(timefit, package=retimes)`)
 
@@ -369,7 +389,7 @@ x2[1]
 ```
 
 
-A more convenient way to represent such data is to make it explicit that data are ordered and that each pair of values correspond to the same subject. A first attempt would be to simply create a 2-column matrix, like this
+However, a more elegant way to represent such data is to make it explicit that data are ordered and that each pair of values correspond to the same subject. A first attempt would be to simply create a 2-column matrix, like this
 
 ```r
 x12 <- cbind(x1, x2)
@@ -384,7 +404,7 @@ head(x12, n = 3)  # or x12[1:3,]
 ```
 
 
-In this case, line numbers (row names in R parlance) would help to identify each subject. However, it would be more elegant to explicitly create a variable holding subjects' ID.
+In this case, line numbers (row names in R parlance) would help to identify each subject. However, it would be more handy to create a variable holding subjects' ID.
 
 
 ```r
@@ -418,7 +438,7 @@ head(d)
 > 2. Compute the range of observed values for the first session (`x1`).
 > 3. Check whether all individual values are greater in the second session, compared to the first session.
 
-Here is an alternate way for representing for the same data set, this time using two variables to code for subjects and condition number, and one variable holding associated RTs. We will use an external package that should be installed first in R library.
+Here is an alternate way for representing the same data set, this time using two variables to code for subjects and condition number, and one variable holding associated RTs. Note that we will use an external package that should be installed first in R directory (this is done automatically by the system, though).
 
 ```r
 if (!require(reshape2)) install.packages("reshape2")
@@ -498,7 +518,7 @@ dm$variable
 ## Levels: x1 x2
 ```
 
-
+The `$` operator is used to select a specific variable in a data frame, hence the need to have variables names.
 
 Among other things, it is now possible to index values of the response variable depending on the values taken by other variables, like in a dictionnary (key-value). E.g., 
 
@@ -580,7 +600,6 @@ dir(pattern = ".csv")
 
 
 To read a CSV file, we just replace `write.csv()` with `read.csv()`.
-
 
 ```r
 rm(dm)  # clean up the workspace

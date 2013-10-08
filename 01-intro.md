@@ -34,10 +34,10 @@ They almost always require preprocessing, cleaning, and recoding---and this ofte
 How to collect data
 ========================================================
 
-- **simple random sampling:** each individual from the population has the same probability of being selected; this is usually done **without replacement** (e.g., surveys, psychological experiment, clinical trials).
-- systematic random sampling, (two-stage) cluster sampling, stratified sampling, etc.
+- Simple random sampling: each individual from the population has the same probability of being selected; this is usually done **without replacement** (e.g., surveys, psychological experiment, clinical trials).
+- Systematic random sampling, (two-stage) cluster sampling, stratified sampling, etc.
 
-In the end, we must have a random sample of statistical units with single or multiple observations on each unit. With this sample, we usually aim at inferring some properties at the level of the population from which this representative sample was drawn.
+In the end, we must have a **random sample** of statistical units with single or multiple observations on each unit. With this sample, we usually aim at inferring some properties at the level of the population from which this 'representative' (<span class="showtooltip" title="Selz M (2013). La représentativité en statistiques, volume 8 series M\'ethodes et Savoirs. Publications de l'INED."><a href="">Selz, 2013</a></span>) sample was drawn.
 
 
 How to store data
@@ -49,12 +49,12 @@ Better to rely on **plain text files** (space, tab or comma-delimited) or **data
 - recording of each data step in text files
 - easy storage and sharing of data
 
-The last two points are part of what is called **reproducible research**.
+The last two points are part of what is called **reproducible research** (<span class="showtooltip" title="Peng R (2009). 'Reproducible Research and Biostatistics.' Biostatistics, 10(3), pp. 405-408."><a href="">Peng, 2009</a></span>).
 
 Data processing
 ========================================================
 
-- full sample single CSV file
+- full sample single CSV file ([RFC4180](http://tools.ietf.org/html/rfc4180))
 - binary data files (`.mat`, `.sav`, `.dta`)
 - individual data files, possibly compressed (require globbing)
 
@@ -68,7 +68,7 @@ A ready to use data set
 Observers rated relatedness of pairs of images of children that were either siblings or not on a 11-point scale. 
 
 <!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Wed Sep 11 15:36:05 2013 -->
+<!-- Tue Oct  8 07:03:41 2013 -->
 <TABLE border=1>
 <TR> <TH>  </TH> <TH> SimRating </TH> <TH> sibs </TH> <TH> agediff </TH> <TH> gendiff </TH> <TH> Obs </TH> <TH> Image </TH>  </TR>
   <TR> <TD align="right"> 1 </TD> <TD align="right"> 10.00 </TD> <TD> 1 </TD> <TD align="right"> 29.00 </TD> <TD> diff </TD> <TD> S1 </TD> <TD> Im1 </TD> </TR>
@@ -88,7 +88,7 @@ Real-life data
 Raw data generally require [**data cleansing**](http://bit.ly/19BqCen).
 
 <!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Wed Sep 11 15:36:05 2013 -->
+<!-- Tue Oct  8 07:03:41 2013 -->
 <TABLE border=1>
 <TR> <TH> id </TH> <TH> centre </TH> <TH> sex </TH> <TH> age </TH> <TH> session </TH> <TH> recover </TH>  </TR>
   <TR> <TD align="right"> 1017 </TD> <TD align="right">   1 </TD> <TD align="right">   1 </TD> <TD> 23 </TD> <TD> 8 </TD> <TD align="right">   0 </TD> </TR>
@@ -98,7 +98,7 @@ Raw data generally require [**data cleansing**](http://bit.ly/19BqCen).
    </TABLE>
 
 
-What does `recover` = 0 or `sex` = 1 mean? Are negative values allowed for `session`? Leading zeros in IDs and centre number are lost.
+What does `recover` = 0 or `sex` = 1 mean? Are negative values allowed for `session`? Leading zeros in IDs and centre number are lost. We need a **data dictionary**.
 
     $ head -n 3 data/raw.csv
     id,centre,sex,age,session,recover
@@ -123,7 +123,7 @@ Data analysis as an iterative process
 Getting started with R
 ========================================================
 
-[R](http://www.r-project.org) is a statistical package for working with data (<span class="showtooltip" title="Ihaka R and Gentleman R (1996). 'R: A language for data analysis and graphics.' Journal of Computational and Graphical Statistics, 5(3), pp. 299-314."><a href="">Ihaka & Gentleman, 1996</a></span>; <span class="showtooltip" title="Venables W and Ripley B (2002). Modern Applied Statistics with S, 4ème edition. Springer. ISBN 0-387-95457-0."><a href="">Venables & Ripley, 2002</a></span>). It features most of modern statistical tools, and convenient functions to import, manipulate and visualize even high-dimensional data sets. There is usually no need to switch to another program throughout project management. 
+[R](http://www.r-project.org) is a statistical package for working with data (<span class="showtooltip" title="Ihaka R and Gentleman R (1996). 'R: A language for data analysis and graphics.' Journal of Computational and Graphical Statistics, 5(3), pp. 299-314."><a href="">Ihaka & Gentleman, 1996</a></span>; <span class="showtooltip" title="Venables W and Ripley B (2002). Modern Applied Statistics with S, 4th edition. Springer. ISBN 0-387-95457-0."><a href="">Venables & Ripley, 2002</a></span>). It features most of modern statistical tools, and convenient functions to import, manipulate and visualize even high-dimensional data sets. There is usually no need to switch to another program throughout project management. 
 
 It is open-source (GPL licence), and it has a very active community of users ([r-help](https://stat.ethz.ch/mailman/listinfo/r-help), [Stack Overflow](http://stackoverflow.com/questions/tagged/r)). 
 
@@ -147,7 +147,7 @@ r <- 5
 Basically, R interprets commands that are sent by the user, and returns an output (which might be nothing). 
 The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions).
 
-Many additional **packages** are available on <http://cran.r-project.org>, and we will use few of them.
+Note that many additional **packages** are available on <http://cran.r-project.org>, and we will use few of them.
 
 RStudio
 ========================================================
@@ -236,65 +236,15 @@ str(bs, vec.len = 1)
 
 Variables are either **numeric** (continuous or discrete) or **categorical** (with ordered or unordered levels). 
 
-Note that there exist other representation for date, censored variable, or strings.
+Note that there exist other representations for working with dates, censored variables, or strings.
 
-Inspecting variables
+
+Testing, organizing, versioning
 ========================================================
 
+RStudio greatly facilitates the data analysis workflow: Rather than writing directly R commands in the console, write them in an R script and run the code from the editor.
 
-
-```r
-head(bs$Gender)
-```
-
-```
-[1] Female Male   Male   Male   Female Female
-Levels: Female Male
-```
-
-```r
-head(bs$FSIQ)
-```
-
-```
-[1] 133 140 139 133 137  99
-```
-
-```r
-summary(bs$Weight)
-```
-
-```
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-    106     135     146     151     172     192       2 
-```
-
-```r
-sum(is.na(bs$Weight))
-```
-
-```
-[1] 2
-```
-
-
-
-Compute the frequency of head
-========================================================
-type: prompt
-
-Let's say we are rolling a fair dice several times. Heads are codes as 1, tails as 0. 
-
-Given the following sequence, what is the number of zeros?
-
-```r
-x <- sample(c(0,1), 10, replace=TRUE)
-print(x)
-```
-
-```
- [1] 0 1 0 1 0 1 0 1 0 1
-```
+![rstudio](./img/01-intro.png)
 
 
 References
@@ -307,6 +257,12 @@ Ihaka R and Gentleman R (1996). "R: A language for data analysis
 and graphics." _Journal of Computational and Graphical
 Statistics_, *5*(3), pp. 299-314.
 
+Peng R (2009). "Reproducible Research and Biostatistics."
+_Biostatistics_, *10*(3), pp. 405-408.
+
+Selz M (2013). _La représentativité en statistiques_, volume 8
+series M\'ethodes et Savoirs. Publications de l'INED.
+
 Venables W and Ripley B (2002). _Modern Applied Statistics with
-S_, 4ème edition. Springer. ISBN 0-387-95457-0.
+S_, 4th edition. Springer. ISBN 0-387-95457-0.
 

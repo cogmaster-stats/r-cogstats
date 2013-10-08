@@ -40,10 +40,10 @@ They almost always require preprocessing, cleaning, and recoding---and this ofte
 How to collect data
 ========================================================
 
-- **simple random sampling:** each individual from the population has the same probability of being selected; this is usually done **without replacement** (e.g., surveys, psychological experiment, clinical trials).
-- systematic random sampling, (two-stage) cluster sampling, stratified sampling, etc.
+- Simple random sampling: each individual from the population has the same probability of being selected; this is usually done **without replacement** (e.g., surveys, psychological experiment, clinical trials).
+- Systematic random sampling, (two-stage) cluster sampling, stratified sampling, etc.
 
-In the end, we must have a random sample of statistical units with single or multiple observations on each unit. With this sample, we usually aim at inferring some properties at the level of the population from which this representative sample was drawn.
+In the end, we must have a **random sample** of statistical units with single or multiple observations on each unit. With this sample, we usually aim at inferring some properties at the level of the population from which this 'representative' `r citep(bib["selz13"])` sample was drawn.
 
 
 How to store data
@@ -55,12 +55,12 @@ Better to rely on **plain text files** (space, tab or comma-delimited) or **data
 - recording of each data step in text files
 - easy storage and sharing of data
 
-The last two points are part of what is called **reproducible research**.
+The last two points are part of what is called **reproducible research** `r citep(bib["peng09"])`.
 
 Data processing
 ========================================================
 
-- full sample single CSV file
+- full sample single CSV file ([RFC4180](http://tools.ietf.org/html/rfc4180))
 - binary data files (`.mat`, `.sav`, `.dta`)
 - individual data files, possibly compressed (require globbing)
 
@@ -91,7 +91,7 @@ d <- read.csv("./data/raw.csv")[-1,]
 print(xtable(d), type="html", include.rownames=FALSE)
 ```
 
-What does `recover` = 0 or `sex` = 1 mean? Are negative values allowed for `session`? Leading zeros in IDs and centre number are lost.
+What does `recover` = 0 or `sex` = 1 mean? Are negative values allowed for `session`? Leading zeros in IDs and centre number are lost. We need a **data dictionary**.
 
     $ head -n 3 data/raw.csv
     id,centre,sex,age,session,recover
@@ -134,7 +134,7 @@ r <- 5
 Basically, R interprets commands that are sent by the user, and returns an output (which might be nothing). 
 The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions).
 
-Many additional **packages** are available on <http://cran.r-project.org>, and we will use few of them.
+Note that many additional **packages** are available on <http://cran.r-project.org>, and we will use few of them.
 
 RStudio
 ========================================================
@@ -189,31 +189,16 @@ str(bs, vec.len = 1)
 
 Variables are either **numeric** (continuous or discrete) or **categorical** (with ordered or unordered levels). 
 
-Note that there exist other representation for date, censored variable, or strings.
+Note that there exist other representations for working with dates, censored variables, or strings.
 
-Inspecting variables
+
+Testing, organizing, versioning
 ========================================================
 
+RStudio greatly facilitates the data analysis workflow: Rather than writing directly R commands in the console, write them in an R script and run the code from the editor.
 
-```{r}
-head(bs$Gender)
-head(bs$FSIQ)
-summary(bs$Weight)
-sum(is.na(bs$Weight))
-```
+![rstudio](./img/01-intro.png)
 
-
-Compute the frequency of head
-========================================================
-type: prompt
-
-Let's say we are rolling a fair dice several times. Heads are codes as 1, tails as 0. 
-
-Given the following sequence, what is the number of zeros?
-```{r}
-x <- sample(c(0,1), 10, replace=TRUE)
-print(x)
-```
 
 References
 ========================================================

@@ -11,8 +11,21 @@ This course is a short and practical introduction to statistical analysis of exp
 
 * We will not cover mathematical statistics, but we will focus on **applied statistics**.
 * We will not provide a complete account of statistical modeling.
-* Examples will come from various disciplines: experimental psychology, social science, medicine, biomedical engineering.
+* Examples will come from various disciplines: experimental psychology, medicine, biomedical engineering.
 * We will try to emphasize the interpretation of results, and how to get them right.
+
+
+Organization
+========================================================
+
+* Time: 9:00–11:30, every Tuesday
+* Prerequisites: basic math and experimental design
+* Statistical packages: R (sessions 1 to 6), Python (sessions 7 to 11)
+* Resources: Handouts available on Github, open access textbook
+* Homeworks: short exercices to complete at home
+* Grading: 50% assignements, 50% final project
+
+Website: http://cogmaster-stats.github.io/site
 
 
 Schedule
@@ -28,19 +41,6 @@ Schedule
 6. Other regression models (Nov. 12)
 
 Sessions 7 to 11 with Python will be detailed later.
-
-
-Organization
-========================================================
-
-* Time: 9:00–11:30, every Tuesday
-* Prerequisites: basic math and experimental design
-* Statistical packages: R (sessions 1 to 6), Python (sessions 7 to 11)
-* Resources: Handouts available on Github, open access textbook
-* Homeworks: short exercices to complete at home
-* Grading: 50% assignements, 50% final project
-
-Website: http://cogmaster-stats.github.io/site
 
 Textbook
 ========================================================
