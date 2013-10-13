@@ -1,0 +1,308 @@
+Data analysis and statistical inference
+========================================================
+author: Christophe Lalanne
+date: October 15, 2013
+css: custom.css
+
+```{r, include=FALSE}
+library(xtable)
+library(knitcitations)
+cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG")
+options(reindent.spaces=2)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(strip.background = list(col = "transparent"), 
+                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                plot.line = list(lwd = 2, col = my.col[1]),
+                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                superpose.line = list(lwd = 2, col = my.col),
+                box.rectangle = list(col = my.col),
+                box.umbrella = list(col = my.col),
+                box.dot = list(col = my.col),
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+Synopsis
+========================================================
+type: sub-section
+
+To call in the statistician after the experiment is done may be no more than asking him to perform a post-mortem examination: he may be able to say what the experiment died of. Ronald Fisher (1890-1962)
+      
+
+> Descriptive statistics • Exploratory Data Analysis • Statistical inference • Statistical models • Student t test
+
+**Lectures:** OpenIntro Statistics, 1.3-1.7, 4.1, 4.3, 4.6, 5.4.
+
+Statistics are and statistics is
+========================================================
+
+"Statisticians are applied philosophers. Philosophers argue how many angels can dance on the head of a needle; statisticians *count* them. (...) We can predict nothing with certainty but we can predict how uncertain our predictions will be, on average that is. Statistics is the science that tells us how."  `r citet(bib["senn03"])`
+
+* Providing appropriate (meaningful and robust) numerical and visual summary of the data.
+* Summarizing associations, spotting unusual observations.
+* Modeling and testing, while reporting honest estimates of uncertainty for model parameters.
+
+Basic summary statistics
+========================================================
+
+Descriptive statistics are a fundamental step before any attempt at modeling. It is very important to summarize the distribution of each variable (univariate approach) and pairwise relationships between variables (bivariate approach).
+
+* Central tendency: mean, median, mode
+* Dispersion: standard deviation, inter-quartile range, range
+* Distribution: histogram (or density estimate), quantile plot, cumulative distribution function, table of relative frequencies
+* Association: correlation (linear or rank-based), odds-ratio, standardized mean difference
+
+Always look at the data before
+========================================================
+
+**Anscombe's Quartet**  
+Pearson's correlations:
+```{r, echo=FALSE, results='asis'}
+res <- diag(cor(anscombe)[5:8, 1:4])
+names(res) <- paste("x", 1:4, "-y", 1:4, sep="")
+print(xtable(as.data.frame(t(res)), digits=3), type="html", include.rownames=FALSE)
+```
+
+Pearson's correlation, as a measure of linear association, is meaningful in case (a) only. The assumption of linearity must be carefully checked.
+
+---
+
+```{r anscombe, echo=FALSE}
+data(anscombe)
+anscombe.df <- data.frame(x=unlist(c(anscombe[,1:4])),
+                          y=unlist(c(anscombe[,5:8])),
+                          case=gl(4, 11, 4*11, labels=letters[1:4]))
+xyplot(y ~ x | case, anscombe.df, type=c("p","r", "g"), aspect="iso", alpha=.5,
+       xlab="", ylab="", main="Anscombe dataset", col=my.col[1])
+```
+
+
+Exploratory Data Analysis
+========================================================
+
+EDA is about exploring data for patterns and relationships without requiring prior hypotheses and using resistant methods `r citep(bib["tukey77"])`. This iterative approach makes heavy use of graphical methods to suggest hypotheses and check model assumptions. 
+
+The main ideas down to: `r citep(bib["hoaglin85"])`
+
+- resistance (unheeded local misfit)
+- residuals (data minus model fit)
+- re-expression (data transformation)
+- revelation (informative display)
+
+
+Hypothesis testing
+========================================================
+
+We focus on a **single hypothesis** (null hypothesis) and calculate the probability that the data would have been observed if the null hypothesis were true. If this probability is small enough (usually, [0.05](http://www.jerrydallal.com/LHSP/p05.htm)), then we "reject" the null. The statistical power associated with such a test is the probability that if the null were actually false we would reject it (given the same data).
+
+In sum, the idea is to confront a single hypothesis with the data, through a designed experiment, with falsification as the only "truth." This approach follows from Popper's philosophical development and was implemented by Fisher, and Neyman & Pearson's NHST framework. See `r citet(bib["hilborn97"])` for more discussion.
+
+
+Alternative paradigms
+========================================================
+
+- **Likelihood approach:** Use the data to arbitrate between two models. Given the data and a mathematical formulation of two competing models, we can ask, "How likely are the data, given the model?"
+- **Bayesian approach:** Use external information that allows to judge *a priori* which model is more likely to be true, i.e. use a prior probability that can be "updated" to yield a posterior probability, given the data. See `r citet(bib["ashby06"])` for a review in biomedical research, and [A Good P–value is Hard to Find: Why I’m a Bayesian When Time Allows](http://biostat.mc.vanderbilt.edu/wiki/pub/Main/FHHandouts/whyBayesian.pdf) (FE Harrell Jr, 2013).
+
+
+We would rather like to know $P(H_0\mid\text{data})$ than $P(|S|>|s|)$ under the null–even if '[the earth is round (p < .05)](http://mark.reid.name/blog/the-earth-is-round.html).'
+
+
+A motivating example
+========================================================
+
+<small>"Four of these dishes were filled with a conventional nutrient solution and four held an experimental 'life-extending' solution to which vitamin E had been added. I waited three weeks with fingers crossed that there was no contamination of the cell cultures, but at the end of this test period three dishes of each type had survived. My technician and I transplanted the cells, let them grow for 24 hours in contact with a radioactive label, and then fixed and stained them before covering them with a photographic emulsion. Ten days passed and we were ready to examine the autoradiographs. Two years had elapsed since I first envisioned this experiment and now the results were in: I had the six numbers I needed. 'I've lost the labels,' my technician said as she handed me the results. This was a dire situation. Without the labels, I had no way of knowing which cell cultures had been treated with vitamin E and which had not." `r citep(bib["good05"])` </small>
+
+    121, 118, 110, 34, 12, 22
+    
+The process of hypothesis testing
+========================================================
+    
+1. Define the null hypothesis ($H_0$), its alternative, and risks associated to a decision.
+2. Choose a test statistic, $S$.
+3. Compute the value of $S$.
+4. Define the sampling distribution of $S$ under $H_0$.
+5. Conclude based on this distribution.
+
+Let $H_0$: 'vitamin E does not impact culture growth.' Under the null, the two labels (treated, not treated) do not bring any information about the response. Let us consider the total number of cells in each batch.
+
+A permutation testing approach
+========================================================
+
+There are ${6 \choose 3}$ to arrange 3 elements (`X1` to `X3`) taken among a total of 6 elements. Let $s$ be the sum of their values. The observed sum `S=121+118+110=349`. How many times do we observe such an extreme statistic? 
+```{r combn, echo=FALSE, results='asis'}
+m <- data.frame(t(combn(c(121, 118, 110, 34, 12, 22), 3)))
+m$s <- apply(m[,1:3], 1, sum)
+print(xtable(m[c(1:3, 18:20),]), type="html")
+```
+
+Comparing two means
+========================================================
+
+Student's t-test can be used to compare two means estimated from small to moderate sized samples. The idea is to refer the test statistic (parameter estimate divided by its standard error, often times assuming a pooled variance estimated from the whole sample) to a T distribution with $\nu=n_1+n_2-2$ degrees of freedom.
+By default, **R's `t.test()` does not assume equality of variance** when performing this test and makes use of Welch-Satterthwaite correction ([Behrens-Fisher problem](http://en.wikipedia.org/wiki/Behrens%E2%80%93Fisher_problem)).
+
+```{r, echo=FALSE}
+args(stats:::t.test.default)
+```
+
+The case of paired samples
+========================================================
+
+Effect of two soporific drugs (1: D. hyoscyamine hydrobromide vs. 2: L. hyoscyamine hydrobromide) measured as increase in hours of sleep compared to control on 10 patients. (William Sealy Gosset, 1876-1937, *nom de plume* Student).
+
+```{r}
+data(sleep)
+help(sleep)
+head(sleep, n=3)
+aggregate(extra ~ group, data=sleep, mean)
+```
+
+
+The case of paired samples (con't)
+========================================================
+
+```{r}
+t.test(extra ~ group, data=sleep, paired=TRUE)
+```
+
+```{r, echo=FALSE, fig.width=10, fig.height=3, fig.align="center"}
+stripplot(extra ~ ID, data=sleep, groups=group, 
+          auto.key=list(corner=c(0,1), text=c("DH", "LH")), 
+          alpha=.75, xlab="Subject Index", ylim=c(-2.2, 6.2))
+```
+
+The case of paired samples (con't)
+========================================================
+
+```{r, echo=FALSE, fig.align="center"}
+xyplot(extra ~ group, data=sleep, groups=ID, type="a", 
+       abline=list(h=0, lty=2), col=my.col[1], aspect=1,
+       scales=list(x=list(labels=c("DH", "LH"))))
+```
+
+---
+
+```{r, echo=FALSE, fig.align="center"}
+xyplot(extra[group == 2] ~ extra[group == 1], data=sleep,
+       abline=c(0,1), col=my.col[1], type=c("p","g"),
+       aspect="iso", xlab="DH", ylab="LH")
+```
+
+Student's t vs. Gaussian distribution
+========================================================
+
+As $n$ increases ($\nu\propto n$), the T distribution approaches that of the standard Normal. 
+For small $n$, the corresponding T distribution exhibits thicker tails (accounting for unusual but expected large results in small samples).
+
+---
+
+```{r, echo=FALSE}
+library(grid)
+x <- seq(-6, 6, by=.025)
+dfrm <- data.frame(x, t5=dt(x, df=5), t10=dt(x, df=10), dn=dnorm(x))
+library(reshape2)
+dfrm <- melt(dfrm, measure.vars=2:4)
+p1 <- xyplot(value ~ x, data=dfrm, groups=variable, type=c("l","g"), xlim=c(-4.5,4.5),
+             auto.key=list(corner=c(.06,.9), lines=TRUE, points=FALSE,
+               text=c("T(5)","T(10)","N(0;1)"), cex=.8),
+             xlab="", ylab="", abline=list(h=0, col="grey"))
+p2 <- xyplot(value ~ x, data=subset(dfrm, variable %in% c("t10","dn") & x > 1),                      
+             groups=variable, type="l", cex=.15, ylim=c(0,.085), xlim=c(1,4.5),
+             scales = list(col = "black", tck = c(0, 0), cex=.6, y=list(draw=FALSE)),
+             xlab="", ylab="",
+             panel=function(...) {
+               grid.rect(gp=gpar(col=NA, fill="white"))
+               panel.xyplot(...)
+               panel.abline(v=1.96, lty=2)
+               panel.text(2.2,0.07, "qnorm(0.975)", adj=c(0,1), cex=.8)})
+print(p1, position=c(0,0,1,1), more=TRUE)
+print(p2, position=c(.6,.55,.95,.975))
+```
+
+One-sided vs. two-sided tests
+========================================================
+
+
+```{r, echo=FALSE}
+x <- seq(-4, 4, by=.05)
+d <- dt(x, df=9)
+qq <- qt(c(0.025,0.975), df=9)
+xr <- seq(qq[2], max(x), by=.05)
+xr2 <- seq(qt(0.95, df=9), max(x), by=.05)
+xl <- seq(min(x), qq[1], by=.05)
+xyplot(d ~ x, type=c("l","g"), ylab="Densité", xlab="t",
+       panel=function(...) {
+         panel.xyplot(..., col="black", lwd=1.5)
+         panel.polygon(x=c(xr2, rev(xr2)), y=c(rep(0, length(xr2)), rev(dt(xr2, df=9))), 
+                       border="transparent", col="blue", alpha=.5)
+         panel.polygon(x=c(xl, rev(xl)), y=c(rep(0, length(xl)), rev(dt(xl, df=9))), 
+                       border="transparent", col="#BF3030", alpha=.5)
+         panel.polygon(x=c(xr, rev(xr)), y=c(rep(0, length(xr)), rev(dt(xr, df=9))), 
+                       border="transparent", col="#BF3030", alpha=.5)
+         panel.abline(h=0, col="grey")
+         panel.rect(-3.9, .32, -3.5, .34, col="#A880FF", border="transparent")
+         panel.rect(-3.9, .35, -3.5, .37, col="#BF303050", border="transparent")
+         panel.text(-3.4, .33, "5 %", adj=c(0,.5), cex=.8)
+         panel.text(-3.4, .36, "2,5 %", adj=c(0,.5), cex=.8)
+       })
+```
+
+---
+
+$H_0: \mu_1=\mu_2$, or equivalently $\mu_1-\mu_2=0$ (no difference in population means, i.e. the two samples come from the same population) vs. $H_1: \mu_1\neq\mu_2$ (differences can be in either direction) or $H_1: \mu_1\lessgtr\mu_2$ 
+
+Comparing two proportions
+========================================================
+
+We tossed a coin 10 times and observed the following outcomes: `TTTTHHHTHT`. Suppose that the events are all independent. Some questions we may want to ask:
+
+- Is this is a fair coin?
+- What is the probability of observing a first Head at the 5th trial in
+this particular sequence, assuming a fair dice?
+- If I repeat the same experiment, what’s the likely range for observing the same number of Heads?
+
+These are very different questions which call for a **decision test**, simple **probability calculus**, and a **confidence interval** for our estimate. In all cases, however, we  need to rely on a known statistical distribution.
+
+Comparing two proportions (con't)
+========================================================
+
+To answer the first question, the statistician would say:
+
+"Assuming a fair coin and independent events, the expected number of Heads is $10 × 0.5 = 5$. The observed frequency of Heads is $4/10 = 0.4$.  
+We can formulate our null as $H_0: p=0.5$, and use a binomial test to test whether the observed frequency significantly differs from the expected frequency, considering a risk $\alpha = 5$%.  
+The results suggest that this series of H and T’s is not incompatible with the hypothesis of equal probability."
+
+Comparing two proportions (con't)
+========================================================
+
+```{r}
+binom.test(x=4, n=10)
+```
+
+Compare to the following test which relies on a Gaussian approximation:
+```{r, eval=FALSE}
+prop.test(x=4, n=10)
+```
+
+
+References
+========================================================
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
