@@ -1,0 +1,174 @@
+Lab 1 : Answers to exercices
+------------------------------
+``` {r setup, cache=FALSE, include=FALSE}
+opts_knit$set(echo=FALSE, message=FALSE, progress=FALSE, 
+              cache=TRUE, verbose=FALSE, tidy=TRUE)
+opts_knit$set(aliases=c(h='fig.height', w='fig.width',
+                cap='fig.cap', scap='fig.scap'))
+opts_knit$set(eval.after = c('fig.cap','fig.scap'))
+knit_hooks$set(document = function(x) {
+  gsub('(\\\\end\\{knitrout\\}[\n]+)', '\\1\\\\noindent ', x)
+})
+library(knitcitations)
+cite_options(tooltip=FALSE)
+bib <- read.bibtex("../refs.bib")
+options(width=80)
+library(latticeExtra)
+trellis.par.set(custom.theme.2())
+set.seed(101)
+```
+
+This document is written using [R Markdown](http://www.rstudio.com/ide/docs/r_markdown). The source code is available in `01-intro-lab-answers.R`.
+
+## Application 1
+
+Here are the number of words recalled by 5 subjects. Factor levels are given as: Neg, Neu, Pos (http://personality-project.org/).
+
+    Jim, 32, 15, 45
+    Victor, 30, 13, 40
+    Faye, 26, 12, 42
+    Ron, 22, 10, 38
+    Jason, 29, 8, 35
+
+1. Create a data frame to store the above data. The data frame, say `dfrm`, will have 3 columns named `subject`, `condition`, and `words`.
+2. Compute the mean number of words recalled by Victor.
+3. Compute means per condition and all pairwise differences.
+
+If you feel comfortable with IO operations in R, you can work directly with the data file `words.dat`.
+
+-----
+
+There are three variables in total, and `subject` and `condition` are considered as categorical variables. Each subject has three records for `words`. The best way to store such data is to create a data frame with three columns, but we will need to repeat conditions across subjects. This can be done using the `rep()` command.
+```{r dfrm}
+subject <- factor(rep(c("Jim", "Victor", "Faye", "Ron", "Jason"), each=3))
+cond <- factor(rep(c("Neg", "Neu", "Pos"), 5))
+words <- c(32, 15, 45, 30, 13, 40, 26, 12, 42, 22, 10, 38, 29, 8, 35)
+dfrm <- data.frame(subject, cond, words)
+head(dfrm)
+```
+
+We can subset the data frame by filtering data matching the following criteria:
+```{r subset}
+dfrm[subject == "Victor",]
+```
+
+Note that this filter applies on rows, hence it appears before the comma in brackets. Leaving right part (after the comma) blank means that R will return all columns of the data frame. If we only want a specific column, we can use an expression like this:
+```{r mean}
+dfrm[subject == "Victor","words"]
+mean(dfrm[subject == "Victor","words"])
+```
+
+As we will see later, it is more convenient to use the `subset()` command, which allows to apply filters on rows and columns in a friendly manner, e.g.
+```{r, eval=FALSE}
+subset(dfrm, subject == "Victor", "words")
+```
+
+To compute means for each condition, we can use the same process and filter the data frame with logical operators. For instance, to get the mean in the neutral condition (`Neu`), we would use
+```{r}
+mean(dfrm[cond == "Neu","words"])
+```
+However, we would need to repeat this instruction three times (i.e., for each level of the factor). A faster way to compute marginal means is to aggregate the data like this:
+```{r}
+aggregate(words ~ cond, data=dfrm, FUN=mean)
+```
+
+**Remark:** It is possible to read the data directly rather than creating a data frame manually. Here is a possible solution :
+```{r }
+tmp <- read.table("../data/words.dat", sep=",", skip=2, 
+                  header=FALSE, col.names=c("subject", "Neg", "Neu", "Pos"))
+library(reshape2)
+dfrm <- melt(tmp)
+head(dfrm)
+```
+
+
+
+## Application 2
+
+The file `brain_size.csv` contains data from a study on the relationship between brain size and weight and intelligence `r citep(bib["willerman91"])`.
+
+1. Load the data file.
+2. Report any missing value (number, variables, etc.).
+3. How many males/females were included in this study?
+4. What is the mean value for full IQ?
+5. What is the mean value for full IQ in males? In females?
+6. What is the average value of MRI counts expressed in log units?
+
+-----
+
+The data are stored in a CSV file, where records (fileds) are separated by semicolons. The first six lines of `brain_size.csv` are displayed below:
+
+    "";"Gender";"FSIQ";"VIQ";"PIQ";"Weight";"Height";"MRI_Count"
+    "1";"Female";133;132;124;"118";"64.5";816932
+    "2";"Male";140;150;124;".";"72.5";1001121
+    "3";"Male";139;123;150;"143";"73.3";1038437
+    "4";"Male";133;129;128;"172";"68.8";965353
+    "5";"Female";137;132;134;"147";"65.0";951545
+    "6";"Female";99;90;110;"146";"69.0";928799
+
+The `read.csv2()` command can be used to read this kind of file. If comma were to be used to separate records, we would use `read.csv()` instead. You will have to change the pathname depending on where `brain_size.csv` is located in your file system. Alternatively, you can update the working directory to point to the folder where this file was saved.
+```{r read}
+d <- read.csv2("../data/brain_size.csv")
+head(d)
+```
+As can be seen, the first column is not really interesting and can be safely removed.
+```{r del}
+d <- d[,-1]
+head(d)
+```
+Note that R automatically creates unique identifier for statistical units arranged in rows: they are called `rownames`. Variables are stored as columns headers and are known as `colnames`, or `names` in the case of a data frame:
+```{r colnames}
+names(d)
+```
+
+A convenient command to display a general summary of the data is the `summary()` function. For categorical data, il will display a table of counts, and for numerical variables a 6-number summary (range, IQR and measures of central tendency). The `summary()` command is also useful to spot possible coding problem.
+```{r summary}
+summary(d)
+```
+In this case, we can notice that some variables are not treated as numerical variables by R, e.g. `Weight` and `Height`. This can be explained by the presence of missing values encoded as ".", whereas R usually expects `NA` or blanks. We could update the reading command to specify how missing data are coded. In this case, we would write
+```{r, eval=FALSE}
+d <- read.csv2("../data/brain_size.csv", na.strings=".")
+```
+However, it is still possible to convert these two variables as `numeric` as follows:
+```{r recode}
+d$Weight <- as.numeric(as.character(d$Weight))
+d$Height <- as.numeric(as.character(d$Height))
+summary(d)
+```
+It is important to first recode raw values to characters, and then to numeric values. Now, we can confirm that there are `r sum(is.na(d))` missing observations in total. Another way to count missing data is to rely on the `is.na()` command. It returns `TRUE` (value is set as missing) or `FALSE`, which can be counted in R as any integer (`TRUE=1`). E.g.,
+```{r na}
+sum(is.na(d$Weight))
+table(is.na(d$Weight))
+```
+
+
+The `summary()` command also gives the number of males and females. We could also use `table()` directly:
+```{r table}
+table(d[,"Gender"])  # or table(d[,1])
+```
+
+Average full IQ is computed as follows:
+```{r ave}
+mean(d$FSIQ)
+```
+Since there's no missing data, we do not have to add the `add.rm=TRUE` option. If we want to restrict the analysis to males, we can use the following command:
+```{r avec}
+mean(d$FSIQ[d$Gender == "Male"])
+```
+Likewise, we would use `mean(d$FSIQ[d$Gender == "Female"])` to compute mean FSQI for females. But, as described in Application 1, it is often easier to use built-in aggregating command like this:
+```{r agg}
+aggregate(FSIQ ~ Gender, d, mean)
+```
+
+Finally, average MRI counts in log units can be computed as follows:
+```{r log}
+mean(log(d$MRI_Count, base=10))  # or we can use log10
+```
+
+
+
+## References
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
