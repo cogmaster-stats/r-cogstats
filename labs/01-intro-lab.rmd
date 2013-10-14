@@ -18,7 +18,7 @@ trellis.par.set(custom.theme.2())
 set.seed(101)
 ```
 
-This document is written using R Markdown. The source code is available in [01-intro-lab.R](01-intro-lab.R).
+This document is written using [R Markdown](http://www.rstudio.com/ide/docs/r_markdown). The source code is available in `01-intro-lab.R`.
 
 #### Learning objectives
 
