@@ -25,7 +25,7 @@ Design of experiments
 
 **Maximize precision while minimizing number of trials.**
 
-Implementation of an organized set of experimental units to characterize the effect of certain treatments or combination of treatments, on one or more response variables. In factorial designs, for example, all levels of all experimental factors will be crossed.
+Implementation of an organized set of experimental units to characterize the effect of certain treatments or combination of treatments, on one or more response variables. 
 
 Taking into account one or more nuisance factors for the establishment of experimental design: organize sources of unwanted variation so that we can say that they affect treatment equivalently, making the comparison between treatments possible.
 
@@ -34,16 +34,18 @@ Some examples
 ========================================================
 
 * Parallel (independent) groups
-* Factorial experiment
-* Complete or incomplete block designs, Latin square design
+* Completely randomized design
+* Incomplete block design (e.g., Latin square)
 * Split-plot design
 * Repeated measures, including cross-over trials
 
+**Randomization** (random allocation of units to treatments–experimental vs. quasi-experimental design), **factorial arrangement** of treatments, and **blocking** (grouping of similar units based on known but irrelevant characteristics) are keys components of experimental design (<span class="showtooltip" title="Montgomery D (2012). Design and Analysis of Experiments, 8th edition. John Wiley \&amp; Sons."><a href="">Montgomery, 2012</a></span>). 
+
 Describing variables relationships
 ========================================================
-R relies on a 'formula' to describe relation between one or multiple response variables and one or more explanatory variables, according to Wilkinson & Rogers's notation (<span class="showtooltip" title="Wilkinson G and Rogers C (1973). 'Symbolic description of factorial models for analysis of variance.' Applied Statistics, 22, pp. 392-399."><a href="">Wilkinson & Rogers, 1973</a></span>; <span class="showtooltip" title="Chambers J and Hastie T (1992). Statistical Models in S. Wadsworth \&amp; Brooks. ISBN: 0534167649."><a href="">Chambers & Hastie, 1992</a></span>). 
+R relies on a 'formula' to describe the relation between one or multiple response variables and one or more explanatory variables, according to Wilkinson & Rogers's notation (<span class="showtooltip" title="Wilkinson G and Rogers C (1973). 'Symbolic description of factorial models for analysis of variance.' Applied Statistics, 22, pp. 392-399."><a href="">Wilkinson & Rogers, 1973</a></span>; <span class="showtooltip" title="Chambers J and Hastie T (1992). Statistical Models in S. Wadsworth \&amp; Brooks. ISBN: 0534167649."><a href="">Chambers & Hastie, 1992</a></span>). 
 
-In the case of ANOVA and regression, the response variable is put on the left of the `~` operator, followed by 
+In the case of ANOVA and regression, a single response variable is put on the left of the `~` operator, followed by 
 
 | RHS     | Variable type    | Meaning                     | Equiv. to             |
 | ------- |:----------------:|:---------------------------:|:---------------------:|
@@ -80,8 +82,7 @@ R's formula and data analysis (con't)
 
 
 ```r
-res <- t.test(d$x1, d$x2, var.equal=TRUE)
-res$p.value
+t.test(d$x1, d$x2, var.equal=TRUE)$p.value
 ```
 
 ```
@@ -119,7 +120,8 @@ t.test(value ~ variable, data=dm, var.equal=TRUE)$p.value
 The Split-Apply-Combine strategy
 ========================================================
 
-"(...) break up a big problem into manageable pieces, operate on each piece independently and then put all the pieces back together." (<span class="showtooltip" title="Wickham H (2011). 'The Split-Apply-Combine Strategy for Data Analysis.' Journal of Statistical Software, 40(1)."><a href="">Wickham, 2011</a></span>)
+"(...) break up a big problem into manageable pieces, operate on each piece independently and then put all the pieces back together." (<span class="showtooltip" title="Wickham H (2011). 'The Split-Apply-Combine Strategy for Data Analysis.' Journal of Statistical Software, 40(1)."><a href="">Wickham, 2011</a></span>)  
+See the [plyr](http://plyr.had.co.nz/) package (we won't use it, though).
 
 ---
 
@@ -131,7 +133,7 @@ Split-Apply-Combine (con't)
 Here is a working example:
 
 ```r
-x <- rnorm(n=15)
+x <- rnorm(n=15)          # 15 random gaussian variates
 grp <- gl(n=3, k=5, labels=letters[1:3])
 spl <- split(x, grp)      # split x by levels of grp
 apl <- lapply(spl, mean)  # apply mean() to each split 
@@ -167,20 +169,32 @@ $A$, with $a$ levels). An **effect model** can be written as
 
 $$ y_{ij} = \mu + \alpha_i + \varepsilon_{ij}, $$
 
-where $\mu$ stands for the overall (grand) mean, $\alpha_i$ is the effect of group $i$ ($i=1,\dots,a$), and $\varepsilon_{ij}\sim \mathcal{N}(0,\sigma^2)$ reflects random error. The following restriction is usually considered: 
+where $\mu$ stands for the overall (grand) mean, $\alpha_i$ is the effect of group or treatment $i$ ($i=1,\dots,a$), and $\varepsilon_{ij}\sim \mathcal{N}(0,\sigma^2)$ reflects random error. The following restriction is usually considered: 
 $\sum_{i=1}^a\alpha_i=0$. 
 
 The **null hypothesis** reads: $H_0:\alpha_1=\alpha_2=\dots=\alpha_a$. It can be tested with an F-test with $a-1$ et $N-a$ degrees of freedom. 
 
+The big picture
+========================================================
+
+Each observation can be seen as a deviation from its group mean, $y_{ij}=\bar y_i+\varepsilon_{ij}$. Then, the whole variability can be expressed as follows:
+
+$$\underbrace{(y_{ij}-\bar
+y)}_{\text{total}}=\underbrace{(\bar y_{i\phantom{j}}\hskip-.5ex-\bar
+y)}_{\text{group}} + \underbrace{(y_{ij}-\bar y_i)}_{\text{residuals}}.$$
+
+---
+
+![anovadecomp](./img/fig-anova2.png)
 Assumptions, caveats, etc.
 ========================================================
 
 * This is an *omnibus test* for which the alternative hypothesis reads $\exists i,j\mid \alpha_i\neq\alpha_j,\: i, j=1,\dots,a\, (i\neq j)$. If the result is significant, it doesn't tell us which pairs of means really differ.
-* Beside independence of observations, this model assumes that variances are equal in each population and that residuals (response variable in this case) are approximately normally distributed.
-* As always, a statistically significant result does not necessarily mean an interesting result from a practical point of view: We need a measure of effect size.
+* Beside independence of observations, this model assumes that variances are equal in each population (which is hard to assess with formal tests) and that residuals are approximately normally distributed.
+* As always, a statistically significant result does not necessarily mean an interesting result from a practical point of view: We need to provide a summary of raw or standardized effects.
 
 
-Illustration
+Different scenarios
 ========================================================
 
 ![anova](./img/fig-anova.png)
@@ -277,6 +291,52 @@ treatment    4   1077   269.3    49.4 6.7e-16
 Residuals   45    246     5.5                
 ```
 
+```r
+model.tables(mod)
+```
+
+```
+Tables of effects
+
+ treatment 
+treatment
+ ctrl   X2G   X2F X1G1F   X2S 
+ 8.16 -2.64 -3.74 -3.94  2.16 
+```
+
+```r
+aggregate(length ~ treatment, peas.melted, mean)$length - mean(peas.melted$length)
+```
+
+```
+[1]  8.16 -2.64 -3.74 -3.94  2.16
+```
+
+
+Application (con't)
+========================================================
+
+Model fit = data + residual
+
+
+```r
+d <- cbind.data.frame(peas.melted, 
+                      fit = fitted(mod), 
+                      residual = resid(mod))
+res <- aggregate(.  ~ treatment, data=d, mean)
+res$effect <- res$fit - mean(peas.melted$length)
+res
+```
+
+```
+  treatment length  fit   residual effect
+1      ctrl   70.1 70.1 -1.232e-15   8.16
+2       X2G   59.3 59.3  5.995e-16  -2.64
+3       X2F   58.2 58.2 -6.665e-17  -3.74
+4     X1G1F   58.0 58.0  1.999e-16  -3.94
+5       X2S   64.1 64.1  3.108e-16   2.16
+```
+
 
 Two-way ANOVA
 ========================================================
@@ -293,6 +353,17 @@ $\gamma_{ij}$ is the deviation of the $A\times B$ treatments from $\mu$, and $\v
 The $\alpha_i$ et $\beta_j$ are called **main effects**,
 and $\gamma_{ij}$ is the **interaction effect**. 
 
+Test of null hypothesis
+========================================================
+
+Null hypotheses associated to the full factorial design are given below:
+
+- $H_0^A:\, \alpha_1=\alpha_2=\dots=\alpha_a$ (a-1 dof), No effect of A
+- $H_0^B:\, \beta_1=\beta_2=\dots=\beta_b$ (b-1 dof), No effect of B
+- $H_0^{AB}:\, \gamma_{11}=\gamma_{13}=\dots=\gamma_{ab}$ ((a-1)(b-1) dof), No interaction between A and B
+
+The ratio of Mean Squares corresponding to each factor and that of the residuals can be tested with Fisher-Snedecor F-tests.
+
 Interaction between factors
 ========================================================
 
@@ -303,6 +374,9 @@ References
 
 Chambers J and Hastie T (1992). _Statistical Models in S_.
 Wadsworth \& Brooks. ISBN: 0534167649.
+
+Montgomery D (2012). _Design and Analysis of Experiments_, 8th
+edition. John Wiley \& Sons.
 
 Sokal R and Rohlf F (1995). _Biometry_, 3rd edition. WH Freeman
 and Company.
