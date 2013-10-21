@@ -86,7 +86,47 @@ This assumes that the data file sits in the current working directory (otherwise
    9. Compare head circumference of males vs. females with a t-test.
    
 For questions (8) and (9), don't just give the p-values; give informative summary of existing differences (e.g., means ± standard deviation, standardized means difference), if any.
+
+### One-way and two-way ANOVA
+
+**9.** Here is an artificial data set to study the one-way ANOVA model.
+
+```{r ex9a, eval=FALSE}
+set.seed(101)
+k <- 3                   # number of groups 
+ni <- 10                 # number of observations per group
+mi <- c(10, 12, 8)       # group means
+si <- c(1.2, 1.1, 1.1)   # group standard deviations
+grp <- gl(k, ni, k * ni, labels = c("A", "B", "C"))
+resp <- c(rnorm(ni, mi[1], si[1]), rnorm(ni, mi[2], si[2]), rnorm(ni, mi[3], si[3]))
+```
+
+Note that the last command is not necessarily the most elegant way to generate individual responses, and such operations can easily be vectorized like this:
+```{r ex9b, eval=FALSE}
+resp <- as.vector(mapply(rnorm, ni, mi, si))
+```
+
+All variables are then grouped into a data frame called `dfrm`:
+```{r ex9c, eval=FALSE}
+dfrm <- data.frame(grp, resp)
+rm(grp, resp)   # delete original variables
+```
+
+   1. Compute average response for condition A, B, and C.
+   2. Compute difference between these group means and the overall mean.
+   3. Show the distribution of individual responses in each condition using a box and whiskers chart.
+   4. Compute the value of the F-statistic testing the null hypothesis of equality of the three means. Based on the ANOVA table returned by R, verify the value of the test statistic manually.
+   5. Apply the one-way ANOVA to the same data, but ignoring the last level of the factor (`C`). Compare the results with those obtained from a t-test.
+
+**10.** The `taste.dat` file includes results from a study on appetite induced by different foods `r citep(bib["street72"])`. Subjects assessed food flavor on a 7-point ordinal scale (-3 = awful to +3 = excellent). There were a total of 50 participants randomized to one of 4 conditions defined by the following factors: screen type (`SCR`, 0=coarse or 1=fine) and concentration of a liquid component (`LIQ`, 0=low or 1=high). The experiment was repeated 4 times, so that there are 16 groups of 50 participants in total. The response variable was the total score (`SCORE`) recorded for each treatment.
+
+   1. Compute means and standard deviations of scores for each treatment.
+   2. Use a Cleveland dot chart to display average scores in each condition, for each factor separately. Draw box and wiskers charts of scores for the 4 treatments.
+   3. Test the hull hypothesis of no effect of the experimental factors using the appropriate model. Is the interaction between the two factors significant at 5%? Is it possible to simplify the full model (`SCR + LIQ + SCR:LIQ`)?
+   4. Look in the online help for the Bartlett test (see `help.search()`), and apply the command to the current data. What conclusion can be drawn from its results?
+   5. How would you compute an effect size for the `SCR` factor? Compare with what would be obtained using a simple t-test.
    
+
 ### References   
 
 ```{r, echo=FALSE, results='asis'}
