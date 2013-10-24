@@ -34,7 +34,7 @@ Data sets used in the following exercises can be found on [Github](https://githu
 
 ### R language and descriptive statistics
 
-**1.** It is easy to store a series of values in a variable `x`. The missing value, coded as `NA`, is written as is (no surrounding quote).
+**Exercise 1.** It is easy to store a series of values in a variable `x`. The missing value, coded as `NA`, is written as is (no surrounding quote).
 ```{r}
 x <- c(5.4, 6.1, 6.2, NA, 6.2, 5.6, 19.0, 6.3)
 x
@@ -53,7 +53,7 @@ x
 ```
 It would be possible to write `x[c(4,7)] <- mean(x, na.rm=TRUE)`, but this means we know the index position of the missing values. Using `is.na()` returns a boolean, which can be used to affect every `TRUE` values, for example.
 
-**2.** Here are two methods to create a factor with a specific arrangement of levels. First, we can generate the base pattern (three `std` followed by three `new`) and replicate it to obtain the desired length:
+**Exercise 2.** Here are two methods to create a factor with a specific arrangement of levels. First, we can generate the base pattern (three `std` followed by three `new`) and replicate it to obtain the desired length:
 ```{r}
 tx <- factor(rep(rep(c("std","new"), each=3), 10))
 ```
@@ -73,7 +73,7 @@ head(tx <- sample(tx), n=7)
 
 It is important to note that we don't have to (and we shouldn't) work with the whole vector, but only update the factor levels. In R, factor are stored as numbers (starting with 1), and labels are just strings associated to each number. Also, variable assignation (`<-`) can be done inside another expression, as shown in the last command.
 
-**3.** The `data()` command allows to import any data set that comes with R base and add-on packages. We can either load the package using, e.g., `library(MASS)`, and then `data()`'s the data set, or use directly
+**Exercise 3.** The `data()` command allows to import any data set that comes with R base and add-on packages. We can either load the package using, e.g., `library(MASS)`, and then `data()`'s the data set, or use directly
 ```{r}
 data(birthwt, package="MASS")
 ```
@@ -143,3 +143,46 @@ bwplot(value ~ variable, melt(data.frame(wk.df)))
 ```
 
 > Try to "read" the above code: what do `is.numeric()` returns, how would you write the second command using `subset()`, why do we `scale()` the data, whta is the purpose of the `reshape()` command?
+
+**Exercise 4.** The simulated data set is reproduced below.
+```{r}
+d <- data.frame(height = rnorm(40, 170, 10),
+                class = sample(LETTERS[1:2], 40, rep=TRUE))
+d$height[sample(1:40, 1)] <- 220
+```
+
+A first way to tackle this problem is to rely on indexation:
+```{r}
+d$class[which(d$height == max(d$height))]
+```
+We first inspect which element corresponds to the maximum value of `height`: `d$height == max(d$height)` returns a vector of booleans of length `length(d$height)`. We then ask for the position of the only TRUE value using `which()`.
+
+It is also possible to sort the entire data frame, and return the last element of the `class` column. See the online help for `order()` for more information about sorting strategies in R.
+```{r}
+d[do.call(order, d),"class"][40]
+```
+
+**Exercise 5.** As with many "unknown" data set, it is recommended to first check how data were stored (header, record separator, decimal point, etc.), how variables were recorded (numeric or factor), and if there are some unexpected values. In what follows, we won't be concerned with incongruous values: we will just discard them and set them to missing.
+```{r}
+WD <- "../data"
+lung <- read.table(paste(WD, "lungcancer.txt", sep="/"),
+                   header=TRUE, na.strings=".")
+str(lung)
+summary(lung)  
+head(sort(lung$time))
+head(sort(lung$age))
+table(lung$cens)
+table(lung$vital.capac)
+lung <- within(lung, {
+  time[time < 0] <- NA
+  age[age == 5] <- NA
+  cens[cens == 2] <- NA
+  cens <- factor(cens)
+  levels(vital.capac)[2:3] <- "low"
+})
+summary(lung)
+```
+
+> Study the above code and try to translate it into your own words.
+
+

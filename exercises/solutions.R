@@ -116,3 +116,37 @@ histogram(~ bwt | ptl2, data=birthwt, xlab="Baby weight (g)")
 ## bwplot(value ~ variable, melt(data.frame(wk.df)))
 
 
+## ------------------------------------------------------------------------
+d <- data.frame(height = rnorm(40, 170, 10),
+                class = sample(LETTERS[1:2], 40, rep=TRUE))
+d$height[sample(1:40, 1)] <- 220
+
+
+## ------------------------------------------------------------------------
+d$class[which(d$height == max(d$height))]
+
+
+## ------------------------------------------------------------------------
+d[do.call(order, d),"class"][40]
+
+
+## ------------------------------------------------------------------------
+WD <- "../data"
+lung <- read.table(paste(WD, "lungcancer.txt", sep="/"),
+                   header=TRUE, na.strings=".")
+str(lung)
+summary(lung)  
+head(sort(lung$time))
+head(sort(lung$age))
+table(lung$cens)
+table(lung$vital.capac)
+lung <- within(lung, {
+  time[time < 0] <- NA
+  age[age == 5] <- NA
+  cens[cens == 2] <- NA
+  cens <- factor(cens)
+  levels(vital.capac)[2:3] <- "low"
+})
+summary(lung)
+
+
