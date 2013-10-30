@@ -1,0 +1,169 @@
+Regression models
+========================================================
+author: Christophe Lalanne
+date: November 5, 2013
+css: custom.css
+
+```{r, include=FALSE}
+library(xtable)
+library(knitcitations)
+cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG")
+options(reindent.spaces=2, show.signif.stars=FALSE)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(strip.background = list(col = "transparent"), 
+                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                plot.line = list(lwd = 2, col = my.col[1]),
+                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                superpose.line = list(lwd = 2, col = my.col),
+                box.rectangle = list(col = my.col),
+                box.umbrella = list(col = my.col),
+                #box.dot = list(col = my.col),
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+Synopsis
+========================================================
+type: sub-section
+
+The greatest value of a picture is when it forces us to notice what we never expected to see. John Tukey (1915-2000)
+
+> correlation • general linear model • simple linear regression
+
+**Lectures:** OpenIntro Statistics, 7.1-7.4.
+
+
+Association, correlation, causality
+========================================================
+
+
+
+Linear correlation
+========================================================
+
+([Bravais-](http://www.amstat.org/publications/jse/v9n3/stanton.html))Pearson correlation coefficient provides a unit-less measure of linear co-variation between two numeric variables, contrary to covariance which depends linearly on the measurement scale of each variable.  
+Perfect positive (negative) linear correlation would yield a value of $r=+1$ ($-1$).
+
+$$   
+r=\frac{\overbrace{\sum_{i=1}^n(x_i-\overline{x})(y_i-\overline{y})}^{\text{covariance
+        (x,y)}}}{\underbrace{\sqrt{\sum_{i=1}^n(x_i-\overline{x})^2}}_{\text{std deviation of x}}\underbrace{\sqrt{\sum_{i=1}^n(y_i-\overline{y})^2}}_{\text{std deviation of y}}}
+$$
+
+It's always about explained variance
+========================================================
+
+We want to account for individual variations of a response variable, $Y$, considering one or more predictors or explanatory variables, $X_j$ (numeric or categorical). **Simple linear regression** considers only one continuous predictor.
+
+---
+
+![linmod](./img/fig-linmod.png)
+
+
+
+A general modeling framework
+========================================================
+
+Usually, we will consider that there is a **systematic and a random (residual) part** at the level of these individual variations. The linear model allows to formalize the asymmetric relationship between response variable ($Y$) and predictors ($X_j$) while separating these two sources of variation:
+
+$$
+\text{response} = \text{predictor(s) effect} + \hskip-11ex
+\underbrace{\;\;\text{noise,}}_{\text{measurement error, observation period, etc.}}
+$$
+
+Importantly, this theoretical relationship is **linear and additive**: `r citep(bib[c("draper98","fox10")])`
+
+$$ \mathbb{E}(y \mid x) = f(x; \beta) $$
+
+All model are wrong, some are useful
+========================================================
+
+... or rather, "the practical question is how wrong do they have to be to not be useful" ([Georges Box](http://goo.gl/RN2t9C)).  
+
+"Far better an approximate answer to the right question, which is often vague, than an exact answer to the wrong question, which can always be made precise" `r citep(bib["tukey62"])`.
+
+But all statistical models rely on more or less stringent assumptions. In the case of linear regression, the **linearity of the relationship** and **influence of individual data points** must be carefully checked.  
+Alternatives do exist, though: resistant or robust (Huber, LAD, quantile) methods, [MARS](http://goo.gl/Ox2xsO), [GAM](http://goo.gl/C8MR6B), or restricted cublic splines `r citep(bib[c("marrie09","harrell01")])`.
+
+ANOVA vs. regression
+========================================================
+
+- Not so much different, in a certain sense.
+- Under the GLM umbrella, we can use regression to fit an ANOVA model.
+
+![linmod2](./img/fig-linmod2.png)
+
+A working example
+========================================================
+
+```{r}
+# Simulate 10 obs. assuming the true model is Y=5.1+1.8X. 
+set.seed(101)
+n <- 10
+x <- runif(n, 0, 10)
+y <- 5.1 + 1.8 * x + rnorm(n)  # add white noise
+summary(m <- lm(y ~ x))
+```
+
+A working example (Con't)
+========================================================
+
+![](./img/fig-linreg.png)
+
+---
+
+- OLS minimizes vertical distances between observed and fitted $y$ values (residual sum of squares).
+- The regression line pass through the mean point, $(\bar x, \bar y)$; $b_0=\bar y-b_1\bar x$.
+- The slope of the regression line is found to be $\sum_i(y_i-\bar y)(x_i-\bar x)/\sum_i(x_i-\bar x)^2$. (Compare to the formula for the correlation coefficient.)
+
+A working example (Con't)
+========================================================
+
+```{r}
+coef(m)[1] + coef(m)[2] * x[1:5]  ## adjusted values
+fitted(m)[1:5]
+y[1:5] - predict(m)[1:5]          ## residuals
+resid(m)[1:5]
+```
+
+
+Beyond the regression line
+========================================================
+
+Predicted/adjusted values are estimated conditional on regressor values, assumed to be fixed and measured without error. We need further distributional assumption to draw inference or estimate 95% CIs for the parameters, namely that residuals follows an $\mathcal{N}(0;\sigma^2)$.  
+**Residual analysis shows what has not yet been 
+accounted for in a model**. 
+
+---
+
+![](./img/fig-linreg2.png)
+
+A working example (Con't)
+========================================================
+
+```{r, echo=2, fig.width=8, fig.height=4, fig.align="center"}
+xyplot(resid(m) ~ fitted(m), type=c("p", "g", "smooth"), span=1, 
+       col.line="orange", lwd=2, col="cornflowerblue",
+       abline=list(h=0, lty=2))
+head(influence.measures(m)$infmat)  # Chambers & Hastie, 1992
+```
+
+References
+========================================================
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
