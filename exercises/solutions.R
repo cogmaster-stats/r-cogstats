@@ -15,16 +15,9 @@ options(width=80)
 library(latticeExtra)
 my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
             'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
-trellis.par.set(strip.background = list(col = "transparent"), 
-                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
-                plot.line = list(lwd = 2, col = my.col[1]),
-                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
-                superpose.line = list(lwd = 2, col = my.col),
-                #box.rectangle = list(col = "white", lwd=1.5),
-                box.umbrella = list(col = my.col),
-                box.dot = list(col = my.col),
-                plot.rect = list(col = my.col, border = my.col),
-                plot.polygon = list(col = my.col[1], border = "white"),
+trellis.par.set(custom.theme.2())
+trellis.par.set(plot.symbol=list(pch=19, cex=1.2),
+                strip.background = list(col = "transparent"), 
                 fontsize = list(text = 16, points = 8))
 set.seed(101)
 
@@ -148,5 +141,169 @@ lung <- within(lung, {
   levels(vital.capac)[2:3] <- "low"
 })
 summary(lung)
+
+
+## ------------------------------------------------------------------------
+reading <- read.csv("../data/reading2.csv", na.strings=".")
+head(reading)
+summary(reading)
+
+
+## ------------------------------------------------------------------------
+sum(is.na(reading$Response))
+
+
+## ------------------------------------------------------------------------
+sum(is.na(reading$Response[reading$Treatment == "Control"]))
+sum(is.na(reading$Response[reading$Treatment == "Treated"]))
+
+
+## ------------------------------------------------------------------------
+nmiss <- function(x) sum(is.na(x))
+tapply(reading$Response, reading$Treatment, nmiss)
+
+
+## ----, eval=FALSE--------------------------------------------------------
+## aggregate(Response ~ Treatment, reading, nmiss, na.action=na.pass)
+
+
+## ------------------------------------------------------------------------
+table(reading$Treatment)
+
+
+## ----, fig.height=5------------------------------------------------------
+densityplot(~ Response, data=reading, groups=Treatment, auto.key=TRUE)
+
+
+## ------------------------------------------------------------------------
+t.test(Response ~ Treatment, data=reading, var.equal=TRUE)
+
+
+## ----, fig.height=5------------------------------------------------------
+aggregate(Response ~ Treatment, data=reading, var)
+bwplot(Response ~ Treatment, data=reading, pch="|")
+
+
+## ----, warning = FALSE---------------------------------------------------
+wilcox.test(Response ~ Treatment, data=reading)
+
+
+## ------------------------------------------------------------------------
+fus <- read.table("../data/fusion.dat", header=FALSE)
+names(fus) <- c("resp", "grp")
+str(fus)
+
+
+## ----, eval=2, fig.height=4, fig.width=4---------------------------------
+bwplot(resp ~ grp, data=fus)
+stripplot(resp ~ grp, data=fus, jitter.data=TRUE, grid="h", alpha=0.5)
+
+
+## ------------------------------------------------------------------------
+f <- function(x, na.rm=TRUE) c(mean=mean(x, na.rm=na.rm), s=sd(x, na.rm=na.rm))
+aggregate(resp ~ grp, data=fus, FUN=f)
+
+
+## ------------------------------------------------------------------------
+t.test(resp ~ grp, data=fus, var.equal=TRUE)
+t.test(resp ~ grp, data=fus)$p.value
+
+
+## ------------------------------------------------------------------------
+fus$resp.log <- log10(fus$resp)
+aggregate(resp.log ~ grp, data=fus, FUN=f)
+histogram(~ resp + resp.log | grp, data=fus, breaks="Sturges", scales=list(relation="free"))
+t.test(resp.log ~ grp, data=fus, var.equal=TRUE)
+
+
+## ------------------------------------------------------------------------
+brain <- read.table("../data/IQ_Brain_Size.txt", header=FALSE, skip=27, nrows=20)
+head(brain, 2)
+
+
+## ------------------------------------------------------------------------
+names(brain) <- tolower(c("CCMIDSA", "FIQ", "HC", "ORDER", 
+                          "PAIR", "SEX", "TOTSA", "TOTVOL", 
+                          "WEIGHT"))
+str(brain)
+
+
+## ------------------------------------------------------------------------
+brain$order <- factor(brain$order)
+brain$pair <- factor(brain$pair)
+brain$sex <- factor(brain$sex, levels=1:2, labels=c("Male", "Female"))
+summary(brain)
+
+
+## ----, eval=c(1,3)-------------------------------------------------------
+table(brain$sex)
+table(brain$sex) / sum(table(brain$sex))
+prop.table(table(brain$sex))
+
+
+## ------------------------------------------------------------------------
+mean(brain$fiq)
+median(brain$fiq)
+
+
+## ------------------------------------------------------------------------
+table(brain$fiq < 90)
+
+
+## ------------------------------------------------------------------------
+quantile(brain$ccmidsa, probs=c(0.25, 0.75))
+diff(quantile(brain$ccmidsa, probs=c(0.25, 0.75)))
+IQR(brain$ccmidsa)
+
+
+## ------------------------------------------------------------------------
+sapply(brain[,c("ccmidsa","hc","totsa","totvol")], IQR)
+
+
+## ----, fig.height=5------------------------------------------------------
+histogram(~ weight | order, data=brain, type="count", 
+          xlab="Weight (kg)", ylab="Counts")
+
+
+## ------------------------------------------------------------------------
+quantile(brain$weight, probs=0:3/3)
+
+
+## ------------------------------------------------------------------------
+weight.terc <- cut(brain$weight, breaks=quantile(brain$weight, probs=0:3/3),
+                   include.lowest=TRUE)
+table(weight.terc)
+aggregate(totvol ~ weight.terc, data=brain, FUN=function(x) c(mean(x), sd(x)))
+
+
+## ------------------------------------------------------------------------
+aggregate(fiq ~ order, data=brain, function(x) c(mean(x), sd(x)))
+t.test(fiq ~ order, data=brain, paired=TRUE)
+
+
+## ------------------------------------------------------------------------
+aggregate(hc ~ sex, data=brain, function(x) c(mean(x), sd(x)))
+t.test(hc ~ sex, data=brain)
+
+
+## ----, fig.height=5------------------------------------------------------
+dotplot(hc ~ sex, data=brain, groups=order, type=c("p", "a"), jitter.x=TRUE, 
+        auto.key=list(title="Birth order", cex=.8, cex.title=1, columns=2))
+
+
+## ------------------------------------------------------------------------
+set.seed(101)
+k <- 3                   # number of groups 
+ni <- 10                 # number of observations per group
+mi <- c(10, 12, 8)       # group means
+si <- c(1.2, 1.1, 1.1)   # group standard deviations
+grp <- gl(k, ni, k * ni, labels = c("A", "B", "C"))
+resp <- c(rnorm(ni, mi[1], si[1]), rnorm(ni, mi[2], si[2]), rnorm(ni, mi[3], si[3]))
+
+
+## ------------------------------------------------------------------------
+d <- data.frame(grp, resp)
+summary(d)
+aggregate(resp ~ grp, data=d, mean)
 
 

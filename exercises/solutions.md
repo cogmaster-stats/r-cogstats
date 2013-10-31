@@ -241,7 +241,7 @@ d[do.call(order, d), "class"][40]
 ```
 
 
-**Exercise 5.** As with many "unknown" data set, it is recommended to first check how data were stored (header, record separator, decimal point, etc.), how variables were recorded (numeric or factor), and if there are some unexpected values. In what follows, we won't be concerned with incongruous values: we will just discard them and set them to missing.
+**Exercise 5.** As with many "unknown" data sets, it is recommended to first check how data were stored (header, record separator, decimal point, etc.), how variables were recorded (numeric or factor), and if there are some unexpected values. In what follows, we won't be concerned with incongruous values: we will just discard them and set them to missing.
 
 ```r
 WD <- "../data"
@@ -332,5 +332,632 @@ summary(lung)
 
 
 > Study the above code and try to translate it into your own words.
+
+### Data exploration and two-group comparisons
+
+**Exercise 6.** Like in Exercice 5, it is always a good idea to look at the raw data, or a subset thereof (especially when data files are really big), in a simple text editor. The `reading2.csv` file looks like this:
+
+    Treatment,Response
+    Treated,24
+    Treated,43
+    Treated,58
+    Treated,71
+    Treated,43
+    Treated,49
+    Treated,61
+    Treated,44
+    Treated,.
+
+It can be seen that: there is a header line (names of the variables), each line corresponds to one observation, with current status (Treated or not) and a value for the response variable; missing value seems to be coded as ".". Thus, a command like this should work:
+
+```r
+reading <- read.csv("../data/reading2.csv", na.strings = ".")
+head(reading)
+```
+
+```
+##   Treatment Response
+## 1   Treated       24
+## 2   Treated       43
+## 3   Treated       58
+## 4   Treated       71
+## 5   Treated       43
+## 6   Treated       49
+```
+
+```r
+summary(reading)
+```
+
+```
+##    Treatment     Response   
+##  Control:23   Min.   :17.0  
+##  Treated:21   1st Qu.:42.0  
+##               Median :48.5  
+##               Mean   :48.0  
+##               3rd Qu.:56.8  
+##               Max.   :85.0  
+##               NA's   :6
+```
+
+
+The `head()` and `summary()` commands are used to get a basic feeling of how the data look like once imported in R. The latter also provides the number of missing values for each variable. Another way to compute missing observations is to use the `is.na()` function: it returns a boolean value for every observation, and we can simply count the number of positive matches (`TRUE`) using the `sum()`, as illustrated below:
+
+```r
+sum(is.na(reading$Response))
+```
+
+```
+## [1] 6
+```
+
+If we want to compute the number of missing data for the two groups, we could use
+
+```r
+sum(is.na(reading$Response[reading$Treatment == "Control"]))
+```
+
+```
+## [1] 4
+```
+
+```r
+sum(is.na(reading$Response[reading$Treatment == "Treated"]))
+```
+
+```
+## [1] 2
+```
+
+but it is easier to rely on aggregating functions, like `tapply()` or `by()`. However, since we used a combination of two commands (`sum()` and `is.na()`), we need to write a little helper function, say `nmiss()`, which will compute the number of missing data for a given vector of values.
+
+```r
+nmiss <- function(x) sum(is.na(x))
+tapply(reading$Response, reading$Treatment, nmiss)
+```
+
+```
+## Control Treated 
+##       4       2
+```
+
+It is also possible to use `aggregate()`, but we must remind that this function automatically discard missing values for its computation. So we would need to call it like this:
+
+```r
+aggregate(Response ~ Treatment, reading, nmiss, na.action = na.pass)
+```
+
+
+Sample size is readily obtained using the `table()` command:
+
+```r
+table(reading$Treatment)
+```
+
+```
+## 
+## Control Treated 
+##      23      21
+```
+
+
+Assuming the `lattice` package is already loaded, we can use a density plot as follows:
+
+```r
+densityplot(~Response, data = reading, groups = Treatment, auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-27](figure/unnamed-chunk-27.png) 
+
+The `auto.key=TRUE` option ensures that R will draw the corresponding legend.
+
+A Student t-test can be done as shown below:
+
+```r
+t.test(Response ~ Treatment, data = reading, var.equal = TRUE)
+```
+
+```
+## 
+## 	Two Sample t-test
+## 
+## data:  Response by Treatment 
+## t = -1.694, df = 36, p-value = 0.099
+## alternative hypothesis: true difference in means is not equal to 0 
+## 95 percent confidence interval:
+##  -15.961   1.435 
+## sample estimates:
+## mean in group Control mean in group Treated 
+##                 44.37                 51.63
+```
+
+The results suggest that there is no evidence of a statistically significant difference (at the 5% level) in average response between the two groups for this particular sample. 
+
+We can further verify group variances and distributions as follows:
+
+```r
+aggregate(Response ~ Treatment, data = reading, var)
+```
+
+```
+##   Treatment Response
+## 1   Control    247.2
+## 2   Treated    102.2
+```
+
+```r
+bwplot(Response ~ Treatment, data = reading, pch = "|")
+```
+
+![plot of chunk unnamed-chunk-29](figure/unnamed-chunk-29.png) 
+
+
+The Wilcoxon-Mann-Whitney test, which is a non-parametric procedure relying on ranks of the observations and testing for a location shift between two samples, is available in the `wilcox.test()` command:
+
+```r
+wilcox.test(Response ~ Treatment, data = reading)
+```
+
+```
+## 
+## 	Wilcoxon rank sum test with continuity correction
+## 
+## data:  Response by Treatment 
+## W = 105.5, p-value = 0.02944
+## alternative hypothesis: true location shift is not equal to 0
+```
+
+
+> How would you explain that the two tests give different outcome with this data set?
+
+**Exercise 7.** The 'fusion' data can be imported in R using the `read.table()` command; records are separated by blanks (tab or space, it doesn't really matter here), and there's no header.
+
+```r
+fus <- read.table("../data/fusion.dat", header = FALSE)
+names(fus) <- c("resp", "grp")
+str(fus)
+```
+
+```
+## 'data.frame':	78 obs. of  2 variables:
+##  $ resp: num  47.2 22 20.4 19.7 17.4 ...
+##  $ grp : Factor w/ 2 levels "NV","VV": 1 1 1 1 1 1 1 1 1 1 ...
+```
+
+
+Two informative graphical displays are box and whiskers chart or so called strip plot. The latter offer the advantage to show all data points, possibly with some horizontal or vertical jittering to avoid data overlap and/or alpha transparency.
+
+```r
+## bwplot(resp ~ grp, data = fus)
+stripplot(resp ~ grp, data = fus, jitter.data = TRUE, grid = "h", alpha = 0.5)
+```
+
+![plot of chunk unnamed-chunk-32](figure/unnamed-chunk-32.png) 
+
+
+To summarize the data, we can write a little helper function that combines the `mean()` and `sd()` commands. For a given vector `x`, the following `f()` function will return the mean and standard deviation of all observations, with a default option to handle missing data.
+
+```r
+f <- function(x, na.rm = TRUE) c(mean = mean(x, na.rm = na.rm), s = sd(x, na.rm = na.rm))
+aggregate(resp ~ grp, data = fus, FUN = f)
+```
+
+```
+##   grp resp.mean resp.s
+## 1  NV     8.560  8.085
+## 2  VV     5.551  4.802
+```
+
+
+As can be seen, the standard deviation for the first group is very large compare to the first group, which also has the highest mean. This confirms the right-skewness of the distributions depicted in the preceding figure.
+
+Results from Student and Welch t-test are given below.
+
+```r
+t.test(resp ~ grp, data = fus, var.equal = TRUE)
+```
+
+```
+## 
+## 	Two Sample t-test
+## 
+## data:  resp by grp 
+## t = 1.94, df = 76, p-value = 0.05615
+## alternative hypothesis: true difference in means is not equal to 0 
+## 95 percent confidence interval:
+##  -0.08094  6.09901 
+## sample estimates:
+## mean in group NV mean in group VV 
+##            8.560            5.551
+```
+
+```r
+t.test(resp ~ grp, data = fus)$p.value
+```
+
+```
+## [1] 0.04529
+```
+
+The classical test, which assumes equality of variance, does not reach the 5% significance level, contrary to Welch t-test with this particular sample.
+
+To get a more symmetric distribution, a log-transformation can be applied to the raw data. This often helps to stabilize the variance as well.
+
+```r
+fus$resp.log <- log10(fus$resp)
+aggregate(resp.log ~ grp, data = fus, FUN = f)
+```
+
+```
+##   grp resp.log.mean resp.log.s
+## 1  NV        0.7904     0.3534
+## 2  VV        0.6034     0.3552
+```
+
+```r
+histogram(~resp + resp.log | grp, data = fus, breaks = "Sturges", scales = list(relation = "free"))
+```
+
+![plot of chunk unnamed-chunk-35](figure/unnamed-chunk-35.png) 
+
+```r
+t.test(resp.log ~ grp, data = fus, var.equal = TRUE)
+```
+
+```
+## 
+## 	Two Sample t-test
+## 
+## data:  resp.log by grp 
+## t = 2.319, df = 76, p-value = 0.02308
+## alternative hypothesis: true difference in means is not equal to 0 
+## 95 percent confidence interval:
+##  0.02639 0.34758 
+## sample estimates:
+## mean in group NV mean in group VV 
+##           0.7904           0.6034
+```
+
+
+**Remark:** A more precise procedure, the [Box-Cox transformation](http://en.wikipedia.org/wiki/Power_transform), would yield an optimal value close to 0, therefore compatible with a log transformation.
+
+**Exercise 8.** First, we load the data using the supplied command:
+
+```r
+brain <- read.table("../data/IQ_Brain_Size.txt", header = FALSE, skip = 27, nrows = 20)
+head(brain, 2)
+```
+
+```
+##     V1 V2   V3 V4 V5 V6   V7   V8    V9
+## 1 6.08 96 54.7  1  1  2 1914 1005 57.61
+## 2 5.73 89 54.2  2  1  2 1685  963 58.97
+```
+
+The data file indicates that the variables are given in the following order:
+
+    CCMIDSA: Corpus Collasum Surface Area (cm2)
+    FIQ: Full-Scale IQ
+    HC: Head Circumference (cm)
+    ORDER: Birth Order
+    PAIR: Pair ID (Genotype)
+    SEX: Sex (1=Male 2=Female)
+    TOTSA: Total Surface Area (cm2)
+    TOTVOL: Total Brain Volume (cm3)
+    WEIGHT: Body Weight (kg)  
+
+We can update our data frame with correct labels for variables, and display a brief summary of data types and values.
+
+```r
+names(brain) <- tolower(c("CCMIDSA", "FIQ", "HC", "ORDER", "PAIR", "SEX", "TOTSA", 
+    "TOTVOL", "WEIGHT"))
+str(brain)
+```
+
+```
+## 'data.frame':	20 obs. of  9 variables:
+##  $ ccmidsa: num  6.08 5.73 6.22 5.8 7.99 8.42 7.44 6.84 6.48 6.43 ...
+##  $ fiq    : int  96 89 87 87 101 103 103 96 127 126 ...
+##  $ hc     : num  54.7 54.2 53 52.9 57.8 56.9 56.6 55.3 53.1 54.8 ...
+##  $ order  : int  1 2 1 2 1 2 1 2 1 2 ...
+##  $ pair   : int  1 1 2 2 3 3 4 4 5 5 ...
+##  $ sex    : int  2 2 2 2 2 2 2 2 2 2 ...
+##  $ totsa  : num  1914 1685 1902 1860 2264 ...
+##  $ totvol : int  1005 963 1035 1027 1281 1272 1051 1079 1034 1070 ...
+##  $ weight : num  57.6 59 64.2 58.5 64 ...
+```
+
+
+The `order`, `pair`, and `sex` variables are categorical, but they are seen as integers by R. They need to be converted as R factors. We will also add more informative label for gender:
+
+```r
+brain$order <- factor(brain$order)
+brain$pair <- factor(brain$pair)
+brain$sex <- factor(brain$sex, levels = 1:2, labels = c("Male", "Female"))
+summary(brain)
+```
+
+```
+##     ccmidsa          fiq              hc       order       pair       sex    
+##  Min.   :5.73   Min.   : 85.0   Min.   :52.9   1:10   1      :2   Male  :10  
+##  1st Qu.:6.29   1st Qu.: 92.0   1st Qu.:54.8   2:10   2      :2   Female:10  
+##  Median :6.71   Median : 96.5   Median :56.8          3      :2              
+##  Mean   :6.99   Mean   :101.0   Mean   :56.1          4      :2              
+##  3rd Qu.:7.63   3rd Qu.:105.5   3rd Qu.:57.2          5      :2              
+##  Max.   :8.76   Max.   :127.0   Max.   :59.2          6      :2              
+##                                                       (Other):8              
+##      totsa          totvol         weight     
+##  Min.   :1685   Min.   : 963   Min.   : 57.6  
+##  1st Qu.:1772   1st Qu.:1035   1st Qu.: 61.6  
+##  Median :1864   Median :1079   Median : 76.0  
+##  Mean   :1906   Mean   :1126   Mean   : 77.8  
+##  3rd Qu.:1984   3rd Qu.:1181   3rd Qu.: 85.0  
+##  Max.   :2264   Max.   :1439   Max.   :133.4  
+## 
+```
+
+
+To compute counts or frequencies of boys and girls, we can use `table()` and/or `prop.table()`. The latter is usually to be preferred.
+
+```r
+table(brain$sex)
+```
+
+```
+## 
+##   Male Female 
+##     10     10
+```
+
+```r
+## table(brain$sex)/sum(table(brain$sex))
+prop.table(table(brain$sex))
+```
+
+```
+## 
+##   Male Female 
+##    0.5    0.5
+```
+
+
+Average and median IQ level are available with `summary(brain)`, but they are easily computed as
+
+```r
+mean(brain$fiq)
+```
+
+```
+## [1] 101
+```
+
+```r
+median(brain$fiq)
+```
+
+```
+## [1] 96.5
+```
+
+The number of children with an IQ < 90 can be found using `table()`:
+
+```r
+table(brain$fiq < 90)
+```
+
+```
+## 
+## FALSE  TRUE 
+##    15     5
+```
+
+Alternatively, we could use `sum(brain$fiq < 90)`.
+
+Anatomical quantities were also partly summarized with `summary(brain)`. We can find the values of the first and third quartile of CCMIDSA like this:
+
+```r
+quantile(brain$ccmidsa, probs = c(0.25, 0.75))
+```
+
+```
+##   25%   75% 
+## 6.295 7.633
+```
+
+```r
+diff(quantile(brain$ccmidsa, probs = c(0.25, 0.75)))
+```
+
+```
+##   75% 
+## 1.338
+```
+
+```r
+IQR(brain$ccmidsa)
+```
+
+```
+## [1] 1.338
+```
+
+The inter-quartile range is simply the difference between the third and first quartile, and R already offers a dedicated command: `IQR()`. This command could be applied to each variable. Of note, here is a way to serialize such an operation:
+
+```r
+sapply(brain[, c("ccmidsa", "hc", "totsa", "totvol")], IQR)
+```
+
+```
+## ccmidsa      hc   totsa  totvol 
+##   1.338   2.425 211.190 146.000
+```
+
+
+The distribution of children weight according to twins number can be summarized with an histogram as shown below.
+
+```r
+histogram(~weight | order, data = brain, type = "count", xlab = "Weight (kg)", ylab = "Counts")
+```
+
+![plot of chunk unnamed-chunk-44](figure/unnamed-chunk-44.png) 
+
+
+Terciles are readily obtained using the same `quantile()` command:
+
+```r
+quantile(brain$weight, probs = 0:3/3)
+```
+
+```
+##     0% 33.33% 66.67%   100% 
+##  57.61  62.75  82.56 133.36
+```
+
+and they can be used to create a three-class variable thanks to the `cut()` command.
+
+```r
+weight.terc <- cut(brain$weight, breaks = quantile(brain$weight, probs = 0:3/3), 
+    include.lowest = TRUE)
+table(weight.terc)
+```
+
+```
+## weight.terc
+## [57.6,62.7] (62.7,82.6]  (82.6,133] 
+##           7           6           7
+```
+
+```r
+aggregate(totvol ~ weight.terc, data = brain, FUN = function(x) c(mean(x), sd(x)))
+```
+
+```
+##   weight.terc totvol.1 totvol.2
+## 1 [57.6,62.7]  1079.00   107.82
+## 2 (62.7,82.6]  1135.50    98.89
+## 3  (82.6,133]  1164.71   158.87
+```
+
+The `breaks=` options is used to indicate how to break the continuous variable into class intervals. Importantly, one must specify `include.lowest=TRUE` in order to include the minimum value of the variable, because default intervals are opened on the left. Finally, although we could reuse our preceding `f()` function (Exercice 7), notice that we can provide inline function to the `aggregate()` command.
+
+Since we are working with monozygotic twins who share all their genes, and given that the characteristics under study are neuropsychological traits thought to be highly heritable, we can safely assume a paired t-test whose results are given below:
+
+```r
+aggregate(fiq ~ order, data = brain, function(x) c(mean(x), sd(x)))
+```
+
+```
+##   order  fiq.1  fiq.2
+## 1     1 100.40  14.50
+## 2     2 101.60  12.55
+```
+
+```r
+t.test(fiq ~ order, data = brain, paired = TRUE)
+```
+
+```
+## 
+## 	Paired t-test
+## 
+## data:  fiq by order 
+## t = -0.4537, df = 9, p-value = 0.6608
+## alternative hypothesis: true difference in means is not equal to 0 
+## 95 percent confidence interval:
+##  -7.183  4.783 
+## sample estimates:
+## mean of the differences 
+##                    -1.2
+```
+
+This confirms that the observed data do not allow us to reject the null hypothesis (no difference between twins regarding IQ level).
+
+Comparing head circumference of males vs. females could rely on a t-test for independent samples if we are willing to assume that boys and girls have different anthropometrical characteristics at birth.
+
+```r
+aggregate(hc ~ sex, data = brain, function(x) c(mean(x), sd(x)))
+```
+
+```
+##      sex    hc.1    hc.2
+## 1   Male 57.3200  0.9426
+## 2 Female 54.9300  1.7269
+```
+
+```r
+t.test(hc ~ sex, data = brain)
+```
+
+```
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  hc by sex 
+## t = 3.841, df = 13.93, p-value = 0.001814
+## alternative hypothesis: true difference in means is not equal to 0 
+## 95 percent confidence interval:
+##  1.055 3.725 
+## sample estimates:
+##   mean in group Male mean in group Female 
+##                57.32                54.93
+```
+
+
+Finally, here is an alternative to strip plots, which relies on [Cleveland's dotplot](http://goo.gl/iSrlOh):
+
+```r
+dotplot(hc ~ sex, data = brain, groups = order, type = c("p", "a"), jitter.x = TRUE, 
+    auto.key = list(title = "Birth order", cex = 0.8, cex.title = 1, columns = 2))
+```
+
+![plot of chunk unnamed-chunk-49](figure/unnamed-chunk-49.png) 
+
+Points are colored according to `order` levels, and the `type=c("p", "a")` option asks R to show individual values and average values for each subgroups (i.e., cross-classifying `sex` and `order` levels). This confirms that there seems to be little variation between twins, but that girls generally have a smaller head circumference.
+
+> How would you compute standardized mean difference (Cohen's d) in each case?
+
+### One-way and two-way ANOVA
+
+**Exercise 9.** The working data set is reproduced below.
+
+
+```r
+set.seed(101)
+k <- 3  # number of groups 
+ni <- 10  # number of observations per group
+mi <- c(10, 12, 8)  # group means
+si <- c(1.2, 1.1, 1.1)  # group standard deviations
+grp <- gl(k, ni, k * ni, labels = c("A", "B", "C"))
+resp <- c(rnorm(ni, mi[1], si[1]), rnorm(ni, mi[2], si[2]), rnorm(ni, mi[3], si[3]))
+```
+
+
+A very basic descriptive summary of the data is provided by `summary()` and group-wise operations:
+
+```r
+d <- data.frame(grp, resp)
+summary(d)
+```
+
+```
+##  grp         resp      
+##  A:10   Min.   : 6.39  
+##  B:10   1st Qu.: 8.61  
+##  C:10   Median :10.06  
+##         Mean   : 9.92  
+##         3rd Qu.:11.10  
+##         Max.   :13.57
+```
+
+```r
+aggregate(resp ~ grp, data = d, mean)
+```
+
+```
+##   grp   resp
+## 1   A 10.294
+## 2   B 11.516
+## 3   C  7.941
+```
 
 
