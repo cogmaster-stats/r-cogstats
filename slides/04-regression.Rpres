@@ -42,7 +42,7 @@ type: sub-section
 
 The greatest value of a picture is when it forces us to notice what we never expected to see. John Tukey (1915-2000)
 
-> correlation • general linear model • simple linear regression
+> correlation • simple linear regression • parameter estimation • diagnostic measures
 
 **Lectures:** OpenIntro Statistics, 7.1-7.4.
 
@@ -50,13 +50,16 @@ The greatest value of a picture is when it forces us to notice what we never exp
 Association, correlation, causality
 ========================================================
 
+Linear regression allows to model the relationship between a continuous outcome and one or more variables of interest, also called predictors. Unlike correlation analysis, these variables play an asymmetrical role, and usually we are interested in quantifying the strength of this relationship, as well as the amount of variance in the response variable acounted for by the predictors.
 
+In linear regression, we assume a causal effect of the predictor(s) on the outcome. When quantifying the degree of association between two variables, however, both variables play a symmetrical role (there's no outcome or response variable). Moreover, correlation [usually](http://stats.stackexchange.com/q/534/930) does not imply causation.
 
 Linear correlation
 ========================================================
 
 ([Bravais-](http://www.amstat.org/publications/jse/v9n3/stanton.html))Pearson correlation coefficient provides a unit-less measure of linear co-variation between two numeric variables, contrary to covariance which depends linearly on the measurement scale of each variable.  
-Perfect positive (negative) linear correlation would yield a value of $r=+1$ ($-1$).
+
+A perfect positive (negative) linear correlation would yield a value of $r=+1$ ($-1$).
 
 $$   
 r=\frac{\overbrace{\sum_{i=1}^n(x_i-\overline{x})(y_i-\overline{y})}^{\text{covariance
@@ -66,7 +69,8 @@ $$
 It's always about explained variance
 ========================================================
 
-We want to account for individual variations of a response variable, $Y$, considering one or more predictors or explanatory variables, $X_j$ (numeric or categorical). **Simple linear regression** considers only one continuous predictor.
+We want to account for individual variations of a response variable, $Y$, considering one or more predictors or explanatory variables, $X_j$ (numeric or categorical).  
+**Simple linear regression** considers only one continuous predictor.
 
 ---
 
@@ -95,7 +99,7 @@ All model are wrong, some are useful
 
 "Far better an approximate answer to the right question, which is often vague, than an exact answer to the wrong question, which can always be made precise" `r citep(bib["tukey62"])`.
 
-But all statistical models rely on more or less stringent assumptions. In the case of linear regression, the **linearity of the relationship** and **influence of individual data points** must be carefully checked.  
+But all statistical models rely on more or less stringent assumptions. In the case of linear regression, the **linearity of the relationship** and **influence of individual data points** must be carefully checked.
 Alternatives do exist, though: resistant or robust (Huber, LAD, quantile) methods, [MARS](http://goo.gl/Ox2xsO), [GAM](http://goo.gl/C8MR6B), or restricted cublic splines `r citep(bib[c("marrie09","harrell01")])`.
 
 ANOVA vs. regression
@@ -121,16 +125,44 @@ summary(m <- lm(y ~ x))
 A working example (Con't)
 ========================================================
 
-![](./img/fig-linreg.png)
+
+```{r, echo=FALSE, fig.width=6, fig.height=6}
+xyplot(y ~ x, type=c("p","g"), cex=1.2,
+       col="cornflowerblue",
+       panel=function(x, y, ...) {
+         panel.xyplot(x, y, pch=1, ...)
+         panel.lmline(x, y, col="grey80")
+         panel.xyplot(x, fitted(m), pch=19, ...)
+         panel.segments(x, y, x, fitted(m), col="grey80")
+         panel.xyplot(mean(x), mean(y), pch=3, cex=1.5)
+       })
+```
 
 ---
 
 - OLS minimizes vertical distances between observed and fitted $y$ values (residual sum of squares).
 - The regression line pass through the mean point, $(\bar x, \bar y)$; $b_0=\bar y-b_1\bar x$.
-- The slope of the regression line is found to be $\sum_i(y_i-\bar y)(x_i-\bar x)/\sum_i(x_i-\bar x)^2$. (Compare to the formula for the correlation coefficient.)
+- The slope of the regression line is found to be $\sum_i(y_i-\bar y)(x_i-\bar x)\big/\sum_i(x_i-\bar x)^2$. (Compare to the formula for the correlation coefficient.)
 
-A working example (Con't)
+
+Testing significance of slope or model
 ========================================================
+
+```{r}
+summary(m)$coefficients
+2*pt(1.619/0.136, 10-2, lower.tail=FALSE) ## t-test for slope
+```
+
+We might also be interested in testing the model as a whole, especially when there are more than one predictor.
+
+```{r}
+anova(m)
+```
+
+Fitted values and residuals
+========================================================
+
+Recall that Model fit = data + residual (cf. ANOVA).
 
 ```{r}
 coef(m)[1] + coef(m)[2] * x[1:5]  ## adjusted values
@@ -151,7 +183,7 @@ accounted for in a model**.
 
 ![](./img/fig-linreg2.png)
 
-A working example (Con't)
+Influence measures
 ========================================================
 
 ```{r, echo=2, fig.width=8, fig.height=4, fig.align="center"}
