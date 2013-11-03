@@ -1,0 +1,49 @@
+Lab 4 : Regression analysis with R
+------------------------------
+``` {r setup, cache=FALSE, include=FALSE}
+opts_knit$set(echo=FALSE, message=FALSE, progress=FALSE, 
+              cache=TRUE, verbose=FALSE, tidy=TRUE)
+opts_knit$set(aliases=c(h='fig.height', w='fig.width',
+                cap='fig.cap', scap='fig.scap'))
+opts_knit$set(eval.after = c('fig.cap','fig.scap'))
+knit_hooks$set(document = function(x) {
+  gsub('(\\\\end\\{knitrout\\}[\n]+)', '\\1\\\\noindent ', x)
+})
+library(knitcitations)
+cite_options(tooltip=FALSE)
+bib <- read.bibtex("../refs.bib")
+options(width=80)
+library(latticeExtra)
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(strip.background = list(col = "transparent"), 
+                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                plot.line = list(lwd = 2, col = my.col[1]),
+                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                superpose.line = list(lwd = 2, col = my.col),
+                box.rectangle = list(col = "white", lwd=1.5),
+                box.umbrella = list(col = my.col),
+                #box.dot = list(col = my.col),
+                #plot.rect = list(col = my.col, border = my.col),
+                #plot.polygon = list(col = my.col[1], border = "white"),
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+This document is written using [R Markdown](http://www.rstudio.com/ide/docs/r_markdown). The source code is available in `04-regression-lab.R`. 
+
+
+#### Learning objectives
+
+> * Use scatter display and smoother
+> * Compute linear and rank correlation
+> * Build a linear regression model and interpret model parameters
+> * Use basic diagnostic tools for regression modeling
+
+
+## References
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
+
