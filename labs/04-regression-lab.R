@@ -1,6 +1,5 @@
-Lab 4 : Regression analysis with R
-------------------------------
-``` {r setup, cache=FALSE, include=FALSE}
+
+## ----setup, cache=FALSE, include=FALSE-----------------------------------
 opts_knit$set(echo=FALSE, message=FALSE, progress=FALSE, 
               cache=TRUE, verbose=FALSE, tidy=TRUE)
 opts_knit$set(aliases=c(h='fig.height', w='fig.width',
@@ -21,22 +20,9 @@ trellis.par.set(plot.symbol=list(pch=19, cex=1.2),
                 strip.background = list(col = "transparent"), 
                 fontsize = list(text = 16, points = 8))
 set.seed(101)
-```
-
-This document is written using [R Markdown](http://www.rstudio.com/ide/docs/r_markdown). The source code is available in `04-regression-lab.R`. 
 
 
-#### Learning objectives
-
-> * Use scatter display and smoother
-> * Compute linear and rank correlation
-> * Build a linear regression model and interpret model parameters
-> * Use basic diagnostic tools for regression modeling
-
-## Scatterplot and correlation
-
-We will consider the data discussed in [Exercise 8](http://rpubs.com/chl/cogmaster-stats-exercises) (see the [solution](http://rpubs.com/chl/cogmaster-stats-solutions)) about the imaging study on brain volume and anthropometric characteristics of Monozygotic twins `r citep(bib["tramo98"])`. The data set was loaded and recoded as follows:
-```{r}
+## ------------------------------------------------------------------------
 brain <- read.table("../data/IQ_Brain_Size.txt", header=FALSE, skip=27, nrows=20)
 names(brain) <- tolower(c("CCMIDSA", "FIQ", "HC", "ORDER", 
                           "PAIR", "SEX", "TOTSA", "TOTVOL", 
@@ -45,68 +31,48 @@ brain$order <- factor(brain$order)
 brain$pair <- factor(brain$pair)
 brain$sex <- factor(brain$sex, levels=1:2, labels=c("Male", "Female"))
 summary(brain)
-```
 
-We will focus on the relationship between two numerical variables: `totvol` (total brain volume, in cm$^3$) and `totsa` (total surface area, in cm$^2$). The analysis will be restricted on the 10 subjects defined by birth order (`order=1`). To simplify command arguments, we can extract the relevant data into a derived data frame, but we could also work directly with `subset()` each time.
-```{r}
+
+## ------------------------------------------------------------------------
 brain2 <- subset(brain, order == 1, c(totsa, totvol))
-```
 
 
-Before computing any measure of linear association, like Pearson's r, it is highly recommended to plot all data points into a two-dimensional display, also called scatterplot. The basic `lattice` command is the `xyplot()` function, with a formula describing what to plot on y-axis (left-hand side of the formula) and what will go on the x-axis (right-hand side). Many options are available, including `type="p"` (points), `type="l"` (lines), `type="g"` (grid), `type="smooth"` (lowess smoother). Here is an example of use:
-```{r, fig.height=5, fig.width=5}
+## ----, fig.height=5, fig.width=5-----------------------------------------
 xyplot(totvol ~ totsa, data=brain2, type=c("p", "g", "smooth"), span=1,
        xlab="Total surface area (cm2)", ylab="Total brain volume (cm3)")
-```
-The `span=` parameter allows to control the width of the smoothing window. The larger it is, the less the local smoother will adjust to local irregularities.
 
-Pearson's correlation can be obtained with the `cor()` command.
-```{r}
+
+## ------------------------------------------------------------------------
 cor(brain2$totvol, brain2$totsa)
-```
 
-In case there are missing values, it is necessary to indicate to R how to compute the correlation coefficient. Usually, we add `use="pairwise.complete.obs"` when there are more than 2 variables and we are interested in computing a correlation matrix. Spearman $\rho$ (rank-based measure of correlation, which allows to summarize a monotonic relationship) can be obtained by adding `method="spearman` to the preceding instruction.
-```{r}
+
+## ------------------------------------------------------------------------
 cor(brain2$totvol, brain2$totsa, method="spearman")
-```
 
-It is also possible to assess the statistical significance of Pearson or Spearman's correlation with `cor.test()`, as shown below.
-```{r}
+
+## ------------------------------------------------------------------------
 cor.test(~ totvol + totsa, data=brain2)
-```
 
 
-## Regression
-
-To fit a simple regression model, we wil use exactly the same formula as that used to display a scatterplot, namely `totvol ~ totsa`. Here are the results produced by R:
-```{r}
+## ------------------------------------------------------------------------
 m <- lm(totvol ~ totsa, data=brain2)
 summary(m)
-```
 
-R displays the value of the regression coefficient and their associated t-tests. The slope corresponds to the parameter of interest (how does `totvol` vary when `totsa` is increased by one unit), while the intercept is the value of `totvol` when `totsa=0`.
 
-Note that an equivalent call using the full data frame would be: 
-```{r, eval=FALSE}
-lm(totvol ~ totsa, brain, subset = order == 1)
-```
+## ----, eval=FALSE--------------------------------------------------------
+## lm(totvol ~ totsa, brain, subset = order == 1)
 
-It is also possible to display an ANOVA table for the regression, although most of the information was already given by R at the bottom of the preceding result.
-```{r}
+
+## ------------------------------------------------------------------------
 anova(m)
-```
 
-One of the assumption of this statistical model is that residuals are random normal, meaning that they do not exhibit any particular pattern depedning on the values of the observed or fitted values. A quick look at a residuals by fitted values often helps to confirm the validity of this hypothesis:
-```{r, fig.height=4}
+
+## ----, fig.height=4------------------------------------------------------
 xyplot(resid(m) ~ fitted(m), type=c("p", "g"), abline=list(h=0, lty=2),
        xlab="Predicted values (totvol)", ylab="Residuals")
-```
-
-Note that the `lattice` package has a built-in command for displaying residual plots, namely `rfs()`.
 
 
-
-```{r, echo=FALSE, message=FALSE}
+## ----, echo=FALSE, message=FALSE-----------------------------------------
 m.inf <- as.data.frame(influence.measures(m)$infmat)
 n <- 10
 obs <- 1:n
@@ -159,12 +125,9 @@ p[[4]] <- xyplot(dfb.tots ~ obs, data=m.inf,
                  })
 library(gridExtra)                 
 do.call(grid.arrange, p)
-```
 
 
-## References
-
-```{r, echo=FALSE, results='asis'}
+## ----, echo=FALSE, results='asis'----------------------------------------
 bibliography(style="text")
-```
+
 
