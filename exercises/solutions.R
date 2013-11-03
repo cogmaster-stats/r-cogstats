@@ -303,7 +303,100 @@ resp <- c(rnorm(ni, mi[1], si[1]), rnorm(ni, mi[2], si[2]), rnorm(ni, mi[3], si[
 
 ## ------------------------------------------------------------------------
 d <- data.frame(grp, resp)
+rm(grp, resp)
 summary(d)
 aggregate(resp ~ grp, data=d, mean)
+
+
+## ------------------------------------------------------------------------
+resp.means <- aggregate(resp ~ grp, data=d, mean)
+
+
+## ------------------------------------------------------------------------
+resp.means$resp - mean(d$resp)
+
+
+## ----, fig.height=5------------------------------------------------------
+bwplot(resp ~ grp, data=d)
+
+
+## ------------------------------------------------------------------------
+m <- aov(resp ~ grp, data=d)
+summary(m)
+
+
+## ------------------------------------------------------------------------
+fval <- 33.031/0.828  ## MS grp / MS residual, see print(summary(m), digits=5)
+pval <- pf(fval, 2, 27, lower.tail=FALSE)
+format(pval, digits=5)
+
+
+## ------------------------------------------------------------------------
+m2 <- aov(resp ~ grp, data=d, subset = grp != "C")
+summary(m2)
+
+
+## ----, eval=1------------------------------------------------------------
+t.test(d$resp[d$grp == "A"], d$resp[d$grp == "B"], var.equal=TRUE)
+t.test(resp ~ grp, data=subset(d, grp != "C"), var.equal=TRUE)
+
+
+## ------------------------------------------------------------------------
+taste <- read.table("../data/taste.dat", header=TRUE)
+summary(taste)
+
+
+## ------------------------------------------------------------------------
+taste$SCR <- factor(taste$SCR, levels=0:1, labels=c("coarse", "fine"))
+taste$LIQ <- factor(taste$LIQ, levels=0:1, labels=c("low", "high"))
+names(taste) <- tolower(names(taste))
+summary(taste)
+
+
+## ------------------------------------------------------------------------
+fm <- score ~ scr * liq
+replications(fm, data=taste)
+
+
+## ------------------------------------------------------------------------
+f <- function(x) c(n=length(x), mean=mean(x), sd=sd(x))
+res <- aggregate(fm, data=taste, f)
+res
+
+
+## ----, eval=FALSE--------------------------------------------------------
+## dotplot(score ~ scr, data=aggregate(fm, taste, mean), groups=liq, type="l")
+
+
+## ----, fig.height=5------------------------------------------------------
+dotplot(score ~ scr, data=taste, groups=liq, type=c("a"), auto.key=TRUE)
+
+
+## ----, fig.height=5------------------------------------------------------
+bwplot(score ~ scr +  liq, taste, ablie=list(h=mean(taste$score), lty=2))
+
+
+## ------------------------------------------------------------------------
+m0 <- aov(fm, data=taste)  ## full model
+summary(m0)
+
+
+## ------------------------------------------------------------------------
+m1 <- update(m0, . ~ . - scr:liq)  ## reduced model
+summary(m1)
+
+
+## ------------------------------------------------------------------------
+bartlett.test(score ~ interaction(liq, scr), data=taste)
+
+
+## ------------------------------------------------------------------------
+10609/(10609+5089)  ## 68% of explained variance
+
+
+## ------------------------------------------------------------------------
+t.test(score ~ scr, data=taste, var.equal=TRUE)
+library(MBESS)
+with(taste, smd(score[scr=="coarse"], score[scr=="fine"]))
 
 

@@ -407,7 +407,124 @@ resp <- c(rnorm(ni, mi[1], si[1]), rnorm(ni, mi[2], si[2]), rnorm(ni, mi[3], si[
 A very basic descriptive summary of the data is provided by `summary()` and group-wise operations:
 ```{r}
 d <- data.frame(grp, resp)
+rm(grp, resp)
 summary(d)
 aggregate(resp ~ grp, data=d, mean)
 ```
+We created a data frame and deleted intermediate variable to keep a clean workspace. The `aggregate()` command returns a data frame; we can store it in a new variable for later use, e.g.
+```{r}
+resp.means <- aggregate(resp ~ grp, data=d, mean)
+```
+
+In particular, we can now use this variable to compute differences between group means (available in column headed `resp` in the `resp.means` data frame) and the grand mean:
+```{r}
+resp.means$resp - mean(d$resp)
+```
+These results suggest that the largest difference is between group B and C.
+
+A boxplot is easily drawn using `bwplot()` and the same formula that we used to summarize the data by group:
+```{r, fig.height=5}
+bwplot(resp ~ grp, data=d)
+```
+
+To compute the ANOVA table, we will again use the `resp ~ grp` formula:
+```{r}
+m <- aov(resp ~ grp, data=d)
+summary(m)
+```
+This significant result suggest that the observed data are not compatible with the null hypothesis. The F-statistic can be computed as follows:
+```{r}
+fval <- 33.031/0.828  ## MS grp / MS residual, see print(summary(m), digits=5)
+pval <- pf(fval, 2, 27, lower.tail=FALSE)
+format(pval, digits=5)
+```
+
+If we want to discard the `C` level for factor `grp`, we can either subset the whole data frame (e.g., `subset(d, grp != "C")`), or call the `aov()` command with a `subset=` option as shown below:
+```{r}
+m2 <- aov(resp ~ grp, data=d, subset = grp != "C")
+summary(m2)
+```
+
+Since we are working with only two groups, this is strictly equivalent to carrying out a Student t-test (assuming equal variance), and the F-statistic is just the square of the t-statistic (p-values will be strictly identical). Here are two ways to write the test for the first two groups:
+```{r, eval=1}
+t.test(d$resp[d$grp == "A"], d$resp[d$grp == "B"], var.equal=TRUE)
+t.test(resp ~ grp, data=subset(d, grp != "C"), var.equal=TRUE)
+```
+(Another option for subsetting would be to use `subset(d, subset=grp %in% c("A","B"))`.)
+
+**Exercise 10.** The `taste.dat` file is a simple tab-delimited text file, with names of the variables on first line. It can be imported using `read.table()`.
+```{r}
+taste <- read.table("../data/taste.dat", header=TRUE)
+summary(taste)
+```
+
+As can be seen, R did not recognize columns 2 and 3 as factors, hence this quick post-processing:
+```{r}
+taste$SCR <- factor(taste$SCR, levels=0:1, labels=c("coarse", "fine"))
+taste$LIQ <- factor(taste$LIQ, levels=0:1, labels=c("low", "high"))
+names(taste) <- tolower(names(taste))
+summary(taste)
+```
+
+A detailed overview for the arrangement of experimental units can be obtained with `replications()`:
+```{r}
+fm <- score ~ scr * liq
+replications(fm, data=taste)
+```
+Note that since we will be reusing the same formula for the ANOVA model, we can associate it to a dedicated variable. Using `*` instead of `+` is not a problem with `aggregate()`. Again, let's define a little helper function that returns sample size, mean, and standard deviation.
+```{r}
+f <- function(x) c(n=length(x), mean=mean(x), sd=sd(x))
+res <- aggregate(fm, data=taste, f)
+res
+```
+
+Since `aggregate()` always returns a data frame with a column for the numerical quantity of interest (note that there should be only one value, unlike the results produced above) , a dot chart can be drawn by embedding the command directly in the `data=` argument as follows:
+```{r, eval=FALSE}
+dotplot(score ~ scr, data=aggregate(fm, taste, mean), groups=liq, type="l")
+```
+However, most `lattice` functions are able to compute average values thanks to the `type="a"` option, so the above instruction is equivalent to:
+```{r, fig.height=5}
+dotplot(score ~ scr, data=taste, groups=liq, type=c("a"), auto.key=TRUE)
+```
+
+Box and wiskers charts of scores for the 4 treatments are obtained easily using a simpler formula:
+```{r, fig.height=5}
+bwplot(score ~ scr +  liq, taste, ablie=list(h=mean(taste$score), lty=2))
+```
+The grand mean has been added to the above plot to allow comparison of groups relative to a baseline.
+
+The saturated model is shown below. It appears that the interaction is not significant at the 5% level, suggesting that this term could be removed from the model yielding a simpler model with two main effects (`scr + liq`). Likewise, the effect of `liq` is not significant, but it is better to keep it in the ANOVA table since it was included in the original experimental design.
+```{r}
+m0 <- aov(fm, data=taste)  ## full model
+summary(m0)
+```
+
+Although we could simply write down `aov(score ~ scr + fiq, taste)`, here is a way to update the previous model which happens to be very handy in regression models including many terms:
+```{r}
+m1 <- update(m0, . ~ . - scr:liq)  ## reduced model
+summary(m1)
+```
+
+Obviously, sum of squares remain identical to those computed in the saturated model, only the resiudal term get 1 additional degree of freedom for the two F-tests.
+
+A Bartlett test for the homogeneity of variances could be used to check the assumption of equal variance (although it is barely useful to test a null hypothesis that we cannot accept, and without any *a priori* idea of the parameter location under the alternative). Since the original model include two factors interacting each other, the test should be carried out at the level of the treatment (3 DF), and not for each group separately:
+```{r}
+bartlett.test(score ~ interaction(liq, scr), data=taste)
+```
+(An alternative test, the Levene test, is available in the `car` package. Its syntax is closer to the one used to fit the ANOVA model (`leveneTest(fm, data=taste)`).)
+
+The above results suggest that the data do not suggest strong departure from the null hypothesis of equal variances.
+
+Finally, to summarize the effect of `scr`, we can compute the partial $\eta^2$ as follows: (Here we are using the residual SS from the second model.)
+```{r}
+10609/(10609+5089)  ## 68% of explained variance
+```
+
+Note that we would reach a similar conclusion (large effect of the `scr` factor) using a standardized mean difference or a two-group comparison:
+```{r}
+t.test(score ~ scr, data=taste, var.equal=TRUE)
+library(MBESS)
+with(taste, smd(score[scr=="coarse"], score[scr=="fine"]))
+```
+
 
