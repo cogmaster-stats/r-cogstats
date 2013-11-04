@@ -64,7 +64,7 @@ xyplot(totvol ~ totsa, data = brain2, type = c("p", "g", "smooth"), span = 1, xl
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
 
-The `span=` parameter allows to control the width of the smoothing window. The larger it is, the less the local smoother will adjust to local irregularities.
+[Lowess smoother](http://en.wikipedia.org/wiki/Local_regression) belongs to local regression methods that allows to assess the linearity of the relationship between two variables (<a href="">Cleveland, 1979</a>). The `span=` parameter allows to control the width of the smoothing window. The larger it is, the less the local smoother will adjust to local irregularities. It is often useful to specify a combination of `type="smooth"` and `type="r"` to get lowess and OLS (regression), i.e. `type=c("p", "r", "smooth")`, superimposed on the same panel since it will help to spot possible deviations from the linearity assumption.
 
 Pearson's correlation can be obtained with the `cor()` command.
 
@@ -180,13 +180,44 @@ xyplot(resid(m) ~ fitted(m), type = c("p", "g"), abline = list(h = 0, lty = 2), 
 
 Note that the `lattice` package has a built-in command for displaying residual plots, namely `rfs()`.
 
+Finally, several measure of observation influence are available in R. We are usually mainly interested in (univariate) outlying values, observation exhibiting a large leverage effect (x-axis), obsrvation having a large residual in absolute values (y-axis), and observation influencing parameter estimates. See 
+[SAS Influence Diagnostics](http://www.sfu.ca/sasdoc/sashtml/stat/chap55/sect38.htm)
+or <a href="">Fox & Weisberg (2010)</a> for a detailed overview of influence measures. In the next figure, several indices were used, based on recommend cut-off values (see SAS guidelines). Most information used to build these graphics is given by the `fitted()`, `resid()`, and `influence.measures()` commands. Based on the results, the 8th observation seems to be the most influential observation, since it would largely alter the slope of the regression line if removed (see its large DFBETA or Cook's distance value).
+
 
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
 
 
+## Application
+
+Government statisticians in England conducted a [study of the relationship between smoking and lung cancer](http://lib.stat.cmu.edu/DASL/Stories/SmokingandCancer.html). The data concern 25 occupational groups and are condensed from data on thousands of individual men. The explanatory variable is the number of cigarettes smoked per day by men in each occupation relative to the number smoked by all men of the same age. This smoking ratio is 100 if men in an occupation are exactly average in their smoking, it is below 100 if they smoke less than average, and above 100 if they smoke more than average. The response variable is the standardized mortality ratio for deaths from lung cancer. It is also measured relative to the entire population of men of the same ages as those studied, and is greater or less than 100 when there are more or fewer deaths from lung cancer than would be expected based on the experience of all English men.  
+
+Here are the raw data:
+
+```r
+smoking <- c(77, 137, 117, 94, 116, 102, 111, 93, 88, 102, 91, 104, 107, 112, 113, 
+    110, 125, 133, 115, 105, 87, 91, 100, 76, 66)
+mortality <- c(84, 116, 123, 128, 155, 101, 118, 113, 104, 88, 104, 129, 86, 96, 
+    144, 139, 113, 146, 128, 115, 79, 85, 120, 60, 51)
+```
+
+
+1. Create a data frame, `d`, with the above variables. Provide a numerical summary of the data (range, mean/median, standard deviation, inter-quartile range).
+2. Use a scatterplot to display the relationship between the two variables.
+3. Add a lowess smoother to this scatterplot, and try different values for the `span=` parameter (e.g., 1/3, 1/2, 2/3, 3/4).
+4. Compute Pearson's correlation coefficient, and give a 95% confidence interval for the parameter estimate.
+5. Fit a simple regression model, with `mortality` as the response variable. Find Pearson's r from the value of the slope of the regression line.
+6. Compute the squared correlation of fitted and observed values. What does this value stand for?
 
 ## References
+
+Cleveland W (1979). "Robust locally weighted regression and smoothing
+scatterplots." _Journal of the American Statistical Association_, *74*,
+pp. 829-836.
+
+Fox J and Weisberg H (2010). _An R Companion to Applied Regression_,
+2nd edition. Sage Publications.
 
 Tramo M, Loftus W, Green R, Stukel T, Weaver J and Gazzaniga M (1998).
 "Brain Size, Head Size, and IQ in Monozygotic Twins." _Neurology_,
