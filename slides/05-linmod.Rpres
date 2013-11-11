@@ -1,0 +1,186 @@
+ANOVA and the linear model
+========================================================
+author: Christophe Lalanne
+date: November 12, 2013
+css: custom.css
+
+```{r, include=FALSE}
+library(xtable)
+library(knitcitations)
+cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG")
+options(reindent.spaces=2, show.signif.stars=FALSE)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(custom.theme.2())
+trellis.par.set(plot.symbol=list(pch=19, cex=1.2),
+                strip.background = list(col = "transparent"), 
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+Synopsis
+========================================================
+type: sub-section
+
+Statistical models are sometimes misunderstood in epidemiology. Statistical models for data are never true. The question whether a model is true is irrelevant. A more appropriate question is whether we obtain the correct scientific conclusion if we pretend that the process under study behaves according to a particular statistical model. Scott Zeger (1991)
+
+> model comparisons • coding of categorical predictors • multiple comparisons • contrasts
+
+
+ANOVA vs. regression
+========================================================
+
+**ANOVA:** Explain variations observed on a numerical response variable by taking into account manipulated or fixed values (levels) of some factors. We may also assume random effects for the factors under study.
+
+**Regression:** Explain variations observed on a numerical response variable, or predict future values, based on a set of $k$ predictors (explanatory variables), which might be either numerical or categorical.
+
+$$ y_i=\beta_0+\sum_{j=1}^k\beta_jx_i $$
+
+A model comparison approach
+========================================================
+
+Base (null) model: no factors/predictors involved, only the grand mean or intercept, and residual variations around this constant value.
+
+Comparing M1 vs. M0 allows to quantify and test the variance accounted for by the factor included in M1, or, equivalently, **reduction in RSS** (unexplained variance).
+
+---
+
+![model](./img/fig-modelcomp.png)
+
+
+A model comparison approach (Con't)
+========================================================
+
+```{r}
+data(ToothGrowth)
+fm <- len ~ supp
+m1 <- aov(fm, data = ToothGrowth)
+summary(m1)
+```
+
+Model with the `supp` factor vs. grand mean only:
+```{r}
+m0 <- update(m1, . ~ - supp)
+anova(m0, m1)
+```
+
+Coding of categorical variables
+========================================================
+
+```{r}
+n <- 6
+x <- gl(2, 1, n, labels=letters[1:2])          ## x={a,b}
+y <- 1.1 + 0.5 * (as.numeric(x)-1) + rnorm(n)  ## x={0,1}
+m <- lm(y ~ x)
+formula(m)
+model.matrix(m)
+```
+
+Regression or t-test?
+========================================================
+
+```{r, echo=FALSE, fig.align='center'}
+xyplot(y ~ as.numeric(x)-1, data=m, type=c("p", "g", "r"), xlab="x",
+       scales=list(x=list(at=c(0,1), labels=c("0 (a)", "1 (b)"))))
+```
+
+Writing down regression equations
+========================================================
+
+When the explanatory variable is numerical, the linear regression model reads $y_i=\beta_0+\beta_1x_i+\varepsilon_i$, where $\beta_0$ is the intercept, $\beta_1$ the slope of the regression line, and $\varepsilon_i$ are random errors (assumed to follow $\mathcal{N}(0;\sigma^2)$).  
+Let $x$ be a categorical variable ($x=a$ or $x=b$), we can then write
+$$ y = \beta_0+\beta_1\mathbb{I}(x=b) $$
+with $\mathbb{I}(x=b)=1$ if $x=b$, 0 otherwise. Whence,
+$$
+\begin{align}
+y &= \beta_0 & (x=a)\\
+  &= \beta_0 + \beta_1 & (x=b)
+\end{align}
+$$
+The interpretation of $\beta_1$ remains the same: it reflects the increase in $y$ when $x$ increases by 1 unit ($a\rightarrow b$). Regarding $\beta_0$, it is the average value of $y$ when $x=0$ (i.e., $x=a$).
+
+Illustration
+========================================================
+Let us consider data on birth weight `r citep(bib["hosmer89"])`.
+
+```{r, fig.height=4, fig.align='center'}
+data(birthwt, package="MASS")
+ethn <- c("White","Black","Other")
+birthwt$race <- factor(birthwt$race, labels=ethn)
+birthwt$race <- relevel(birthwt$race, ref="White")
+xyplot(bwt ~ race, data=birthwt, jitter.x=TRUE, alpha=.5)
+```
+
+Regression of ethnicity on weight
+========================================================
+
+```{r}
+m <- lm(bwt ~ race, data=birthwt)
+summary(m)
+```
+
+ANOVA Table for weight ~ ethnicity
+========================================================
+
+```{r}
+anova(m)
+```
+
+Using `summary(aov(bwt ~ race, data=birthwt))` would yield exactly the same results. 
+
+Contrast coding in R
+========================================================
+
+http://www.ats.ucla.edu/stat/r/library/contrast_coding.htm
+
+```{r}
+options("contrasts")
+coef(m)
+options(contrasts=c("contr.sum", "contr.poly"))
+m2 <- lm(bwt ~ race, data=birthwt)
+coef(m2)
+```
+
+Contrast coding in R (Con't)
+========================================================
+
+```{r}
+grp.means <- with(birthwt, tapply(bwt, race, mean))
+grp.means
+grp.means[2:3] - grp.means[1]     ## m  "contr.treatment"
+grp.means[1:2] - mean(grp.means)  ## m2 "contr.sum"
+```
+
+Contrast coding in R (Con't)
+========================================================
+
+```{r, echo=FALSE, fig.height=7, fig.align='center'}
+keycol <- c('chartreuse3', 'darkgoldenrod1')
+xyplot(bwt ~ race, data=birthwt, jitter.x=TRUE, alpha=.5, type="a",
+       key=simpleKey(c("contr.treatment", "contr.sum"), col=keycol, 
+                     points=FALSE, lines=FALSE),
+       ylim=c(2000,4000), lwd=5,
+       abline=list(h=c(mean(birthwt$bwt[birthwt$race=="White"]),
+                       mean(birthwt$bwt)), col=keycol))
+```
+
+
+References
+========================================================
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
