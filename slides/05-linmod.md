@@ -15,13 +15,13 @@ type: sub-section
 
 Statistical models are sometimes misunderstood in epidemiology. Statistical models for data are never true. The question whether a model is true is irrelevant. A more appropriate question is whether we obtain the correct scientific conclusion if we pretend that the process under study behaves according to a particular statistical model. Scott Zeger (1991)
 
-> model comparisons • coding of categorical predictors • multiple comparisons • contrasts
+> model comparisons • coding of categorical predictors • contrasts • analysis of covariance
 
 
 ANOVA vs. regression
 ========================================================
 
-**ANOVA:** Explain variations observed on a numerical response variable by taking into account manipulated or fixed values (levels) of some factors. We may also assume random effects for the factors under study.
+**ANOVA:** Explain variations observed on a numerical response variable by taking into account manipulated or fixed values (levels) for some factors. We may also assume random effects for the factors under study.
 
 **Regression:** Explain variations observed on a numerical response variable, or predict future values, based on a set of $k$ predictors (explanatory variables), which might be either numerical or categorical.
 
@@ -30,7 +30,7 @@ $$ y_i=\beta_0+\sum_{j=1}^k\beta_jx_i $$
 A model comparison approach
 ========================================================
 
-Base (null) model: no factors/predictors involved, only the grand mean or intercept, and residual variations around this constant value.
+Base (null) model, M0: no factors/predictors involved, only the grand mean or intercept, and residual variations around this constant value.
 
 Comparing M1 vs. M0 allows to quantify and test the variance accounted for by the factor included in M1, or, equivalently, **reduction in RSS** (unexplained variance).
 
@@ -274,10 +274,127 @@ Contrast coding in R (Con't)
 <img src="05-linmod-figure/unnamed-chunk-11.png" title="plot of chunk unnamed-chunk-11" alt="plot of chunk unnamed-chunk-11" style="display: block; margin: auto;" />
 
 
+Analysis of covariance
+========================================================
+
+Analysis of covariance consists in testing the effect of different levels of a factor on a numerical response when other numerical covariates are also considered. The response variable is 'associated' to the numerical covariate. The idea is to get an estimate of the average response corrected for the possible between-group differences (at the level of the covariates).
+
+Such analyses are frequently carried out on pre/post measurements, and they can generally be seen as a post-hoc adjustment method (<span class="showtooltip" title="Miller G and Chapman J (2001). 'Misunderstanding Analysis of Covariance.' Journal of Abnormal Psychology, 110(1), pp. 40-48."><a href="">Miller & Chapman, 2001</a></span>; <span class="showtooltip" title="Senn S (2006). 'Change from baseline and analysis of covariance revisited.' Statistics in Medicine, 25(24), pp. 4334-4344."><a href="">Senn, 2006</a></span>).
+
+Analysis of covariance (Con't)
+========================================================
+
+Let $y_{ij}$ be the $j$ th observation in group $i$, the ANCOVA model with one covariate can be written as 
+
+$$ y_{ij} = \mu+\alpha_i+\beta(x_{ij}-\overline{x})+\varepsilon_{ij}, $$
+
+where $\beta$ is the regression coefficient connecting the response $y$ to the cofactor $x$ (numerical), and $\overline{x}$ is the mean of the $x_{ij}$. As usual, $\varepsilon_{ij}$ is a random term distributed as $\mathcal{N}(0, \sigma^2)$.
+
+Note that it is assumed that $\beta$ is the same in each group. This hypothesis ('parallelism' of regression slopes) can be verifed by testing the interaction term $\alpha\beta$.
+
+Analysis of covariance (Con't)
+========================================================
+
+![ancova](./img/fig-ancova.png)
+
+Illustration
+========================================================
+
+The `anorexia` data set includes weight change data for young female anorexia patients following different treatment regimen (Cognitive Behavioural treatment, Family treatment, or Control) (<span class="showtooltip" title="Hand D, Daly F, McConway K and Ostrowski E (1993). A Handbook of Small Data Sets. Chapman \&amp; Hall. Data set 285, p.~ 229."><a href="">Hand et al. 1993</a></span>).
+
+
+```r
+data(anorexia)
+anorexia$Treat <- relevel(anorexia$Treat, ref="Cont")
+f <- function(x) c(mean=mean(x), sd=sd(x))
+aggregate(cbind(Prewt, Postwt) ~ Treat, data=anorexia, f)
+```
+
+```
+  Treat Prewt.mean Prewt.sd Postwt.mean Postwt.sd
+1  Cont     81.558    5.707      81.108     4.744
+2   CBT     82.690    4.845      85.697     8.352
+3    FT     83.229    5.017      90.494     8.475
+```
+
+
+Illustration (Con't)
+========================================================
+
+<img src="05-linmod-figure/unnamed-chunk-13.png" title="plot of chunk unnamed-chunk-13" alt="plot of chunk unnamed-chunk-13" style="display: block; margin: auto;" />
+
+
+Illustration (Con't)
+========================================================
+
+
+```r
+## Model considering identical slopes per group
+m0 <- aov(Postwt ~ Prewt + Treat, data=anorexia)  
+## Model considering different slopes per group
+m1 <- aov(Postwt ~ Prewt * Treat, data=anorexia)  
+anova(m0, m1)
+```
+
+```
+Analysis of Variance Table
+
+Model 1: Postwt ~ Prewt + Treat
+Model 2: Postwt ~ Prewt * Treat
+  Res.Df  RSS Df Sum of Sq    F Pr(>F)
+1     68 3311                         
+2     66 2845  2       466 5.41 0.0067
+```
+
+
+The comparison between the two **nested models** corresponds to a test of the interaction term. It should be kept as including it in the model results in a significant decrease in RSS (cf. `summary(m1)`). 
+
+Illustration (Con't)
+========================================================
+
+The model without interaction writes down:
+
+$$
+\begin{align}
+\tilde y_i &= 45.67 + 0.43\times\text{Prewt}_i
++4.10\times\mathbb{I}(\text{Treat}_i=\text{CBT})\\
+&\phantom{= 45.67 }+8.66\times\mathbb{I}(\text{Treat}_i=\text{FT}).
+\end{align}
+$$
+
+For the control group (`CTRL`), $$\tilde y_i = 45.67 +
+0.43\times\text{Prewt}_i,$$ while for the `FT` group $$\tilde y_i =
+45.67 + 0.43\times\text{Prewt}_i+8.66.$$ The effect of `Prewt` is the same for all patients, and the grouping factor only introduces a mean change (+4.10 ou +8.66) with respect to the control group.
+
+Illustration (Con't)
+========================================================
+
+On the contrary, the model with interaction implies
+
+$$
+\begin{align}
+\tilde y_i &= 80.99 - 0.13\times\text{Prewt}_i \\
+&\phantom{80.99 -}+4.46\times\mathbb{I}(\text{Treat}_i=\text{CBT})\\
+&\phantom{80.99 -}+8.75\times\mathbb{I}(\text{Treat}_i=\text{FT})\\
+&\phantom{80.99 -}+0.98\times\text{Prewt}_i\times\mathbb{I}(\text{Treat}_i=\text{CBT})\\
+&
+\phantom{80.99 -}+1.04\times\text{Prewt}_i\times\mathbb{I}(\text{Treat}_i=\text{FT}).
+\end{align}
+$$
 
 References
 ========================================================
 
+Hand D, Daly F, McConway K and Ostrowski E (1993). _A Handbook of
+Small Data Sets_. Chapman \& Hall. Data set 285, p.~ 229.
+
 Hosmer D and Lemeshow S (1989). _Applied Logistic Regression_. New
 York: Wiley.
+
+Miller G and Chapman J (2001). "Misunderstanding Analysis of
+Covariance." _Journal of Abnormal Psychology_, *110*(1), pp.
+40-48.
+
+Senn S (2006). "Change from baseline and analysis of covariance
+revisited." _Statistics in Medicine_, *25*(24), pp. 4334-4344.
 
