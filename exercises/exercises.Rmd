@@ -125,7 +125,64 @@ rm(grp, resp)   # delete original variables
    3. Test the hull hypothesis of no effect of the experimental factors using the appropriate model. Is the interaction between the two factors significant at 5%? Is it possible to simplify the full model (`SCR + LIQ + SCR:LIQ`)?
    4. Look in the online help for the Bartlett test (see `help.search()`), and apply the command to the current data. What conclusion can be drawn from its results?
    5. How would you compute an effect size for the `SCR` factor? Compare with what would be obtained using a simple t-test.
-   
+
+
+### Correlation and linear regression
+
+**11.** Data in the file `brain_size.dat` were collected by authors interested in the relationship between [brain size and weight and intelligence](http://lib.stat.cmu.edu/DASL/Stories/BrainSizeandIntelligence.html) `r citep(bib["willerman91"])`.
+
+*Hint:* Be careful with missing data when loading the data.
+
+1. Compute the linear correlation between `MRI_count` and `Weight`, with its 95% confidence interval.
+2. Estimate Pearson's r between these two variables in men and in females. Can they be considered different from a statistical point of view? *Hint:* You can use the `r.test()` command from the [psych](http://cran.r-project.org/web/packages/psych/) package (`install.packages("psych")`).
+3. Show in a scatterplot the relationship between `MRI_count` and `Weight` , highlighted by gender levels.
+4. Compute the slope of the regression line for the model given by the following formula `fm <- MRI_count ~ Weight`. Does its 95% confidence interval include the value 0?
+5. Show the distribution of residuals for this model using an histogram or a density plot.
+
+**12.** Load data included in the R file `sim.rda`. Once loaded using `data()`, you will have access to a data frame named `sim`. This is a rectangular data set with 80 observations and 44 variables. The response variable is `y`, and explanatory variables are named `x1` to `x43`. We seek to isolate among them predictors showing interesting relationship with `y`, in terms of positive or negative linear correlation. To keep a variable, a criteria based on a significant correlation test (unadjusted 5% level) will be considered.
+
+1. Write R code that will select all variables fulfilling the above criteria.
+2. How many variables would be kept if we were simply correcting the type I error rate by the Bonferroni method (i.e., divide observed p-values by the number of tests, or, equivalently, consider a nominal risk of $0.05k$, where $k$ is the number of tests)?
+3. Are there potential issues with such univariate screening? 
+4. Using the selected variables in (1) (unadjusted 5% error rate criteria), fit a regression model with `y` as the response variable and all candidates predictors. Comment the results.
+
+### ANOVA and regression
+
+**13.** Consider the `ToothGrowth` dataset, available in R with the following command:
+```{r, eval=FALSE}
+data(TootGrowth, package="MASS")
+```
+We are interested in studying the effect of `dose` alone (i.e., don't pay attention to the `supp` factor). Compare and discuss the results of the following models:
+
+* A one-way ANOVA with `dose` treated as a factor with unordered levels
+* A one-way ANOVA with `dose` treated as a factor with ordered levels (`ToothGrowth$dose <- factor(ToothGrowth$dose, ordered=TRUE)`)
+* A linear regression with `dose` treated as a numeric variable.
+* A linear regression including `dose` and `I(dose^2)` (which means the square of the dose) as numeric variables.
+
+**14.** Using data from Exercise 10, we will be interested in modeling the relationship between score and screen type, `SCORE ~ SCR`, without treating `SCR` as a factor.
+
+1. Compute the intercept and slope of the regression line for the model `SCORE ~ SCR`, and show the regression line in a scatterplot display, together with individual data points.
+2. Assuming the above regression model has been saved in a variable `m`,  what represent the following values: `taste$SCORE - fitted(m)`?
+3. Compare results from a test of significance of the slope to a simple t-test with `SCR` treated as a grouping variable?
+4. The levels for the `SCR` variable are currently coded as {0,1}. Update them to {-1,+1}. Does this affect the previous comparison? If so, in what sense?
+
+**15.** Authors studied the effect of different dieting treatment on 60 rats, and they considered two factors of interest: type of proteins used to feed the rats (beef, pork, cereals) and their concentration level (high or low) `r citep(bib["snedecor80"])`. The response variable was the weight gain (in grams) after treatment. Data are available in the `rats.rda` data file.
+```{r, eval=FALSE}
+load("rats.rda")
+rat <- within(rat, {
+  Diet.Amount <- factor(Diet.Amount, levels=1:2, 
+                        labels=c("High","Low"))
+  Diet.Type <- factor(Diet.Type, levels=1:3, 
+                        labels=c("Beef","Pork","Cereal")) 
+  })
+```
+
+1. Show average responses for the 60 rats in an interaction plot.
+2. Consider the following 6 treatments: `Beef/High`, `Beef/Low`, `Pork/High`, `Pork/Low`, `Cereal/High`, et `Cereal/Low`. What is the result of the F-test for a one-way ANOVA?
+3. Use `pairwise.t.test()` with Bonferroni correction to identify pairs of treatments that differ significantly one from the other.
+4. Based on these 6 treatments, build a matrix of 5 contrasts allowing to test the following conditions: beef vs. cereal and beef vs. porc (2 DF); high vs. low dose (1 DF); and interaction type/amount (2 DF). Partition the SS associated to treatment computed in (2) according to these contrasts, and test each contrast at a 5% level (you can consider that there's no need to correct the multiple tests if contrasts were defined *a priori*).
+5. Compare those results with a two-way ANOVA including the interaction between type and amount.
+6. Test the following *post-hoc* contrast: beef and pork at high dose (i.e., `Beef/High` and `Pork/High`) vs. the average of all other treatments. Is the result significant at the 5% level? What does this result suggest?
 
 ### References   
 
