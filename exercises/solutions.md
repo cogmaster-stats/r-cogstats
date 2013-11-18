@@ -1247,4 +1247,203 @@ with(taste, smd(score[scr == "coarse"], score[scr == "fine"]))
 ```
 
 
+### Correlation and linear regression
+
+**Exercise 11.** A quick look at the raw data file will confirm that missing data are coded as ".". This need to be set a the default NA coding when importing the data.
+
+```r
+brains <- read.table("../data/brain_size.dat", header = TRUE, na.strings = ".")
+str(brains)
+```
+
+```
+## 'data.frame':	40 obs. of  7 variables:
+##  $ Gender   : Factor w/ 2 levels "Female","Male": 1 2 2 2 1 1 1 1 2 2 ...
+##  $ FSIQ     : int  133 140 139 133 137 99 138 92 89 133 ...
+##  $ VIQ      : int  132 150 123 129 132 90 136 90 93 114 ...
+##  $ PIQ      : int  124 124 150 128 134 110 131 98 84 147 ...
+##  $ Weight   : int  118 NA 143 172 147 146 138 175 134 172 ...
+##  $ Height   : num  64.5 72.5 73.3 68.8 65 69 64.5 66 66.3 68.8 ...
+##  $ MRI_Count: int  816932 1001121 1038437 965353 951545 928799 991305 854258 904858 955466 ...
+```
+
+
+Before computing any measure of linear association, it is useful to display a scatterplot of the data with `xyplot()` and a lowess smoother: 
+
+```r
+xyplot(MRI_Count ~ Weight, data = brains, pch = as.numeric(brains$Gender), type = c("p", 
+    "g", "smooth"), auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-72](figure/unnamed-chunk-72.png) 
+
+We have highlighted gender levels by using separate character symbols: Recall that factor levels are stored as numeric values (starting at 1) with associated labels (sorted in lexicographic order) by R, hence in this case the `pch=` argument will take values 1 (Female, dots) and 2 (Male, triangles):
+
+```r
+head(as.character(brains$Gender))
+```
+
+```
+## [1] "Female" "Male"   "Male"   "Male"   "Female" "Female"
+```
+
+```r
+head(as.numeric(brains$Gender))
+```
+
+```
+## [1] 1 2 2 2 1 1
+```
+
+
+Pearson's correlation can be computed using `cor()` without further option. Instead of writing `cor(brains$MRI_Count, brains$Weight)`, we can use the `with()` shortcut which allows to work with data located in a specific data frame.
+
+```r
+with(brains, cor(MRI_Count, Weight))
+```
+
+```
+## [1] NA
+```
+
+As can be seen, R will return `NA` since there are missing values in the data. Instead, we need to tell R to compute correlation on complete pairwise observations (which can be abbreviated as `"pair"`, see the online help):
+
+```r
+with(brains, cor(MRI_Count, Weight, use = "pair"))
+```
+
+```
+## [1] 0.5134
+```
+
+
+However, the `cor()` command does not provide 95% confidence intervals, so we need to use  `cor.test()`, as shown below. This function offers a formula interface, which might be further exploited to compute results by gender.
+
+```r
+cor.test(~MRI_Count + Weight, data = brains)
+```
+
+```
+## 
+## 	Pearson's product-moment correlation
+## 
+## data:  MRI_Count and Weight 
+## t = 3.589, df = 36, p-value = 0.0009798
+## alternative hypothesis: true correlation is not equal to 0 
+## 95 percent confidence interval:
+##  0.2317 0.7156 
+## sample estimates:
+##    cor 
+## 0.5134
+```
+
+
+Since we can pass a data frame directly to `cor.test()`,  we can also subset its values by any logical filter. In particular, we could compute Pearson r for males and females as follows:
+
+```r
+cor.test(~MRI_Count + Weight, data = subset(brains, Gender == "Female"))
+```
+
+```
+## 
+## 	Pearson's product-moment correlation
+## 
+## data:  MRI_Count and Weight 
+## t = 2.116, df = 18, p-value = 0.04857
+## alternative hypothesis: true correlation is not equal to 0 
+## 95 percent confidence interval:
+##  0.004674 0.742216 
+## sample estimates:
+##    cor 
+## 0.4463
+```
+
+```r
+## cor.test(~MRI_Count + Weight, data = subset(brains, Gender == "Male"))
+```
+
+
+To test the equality of the two correlation coefficients, we can use the `r.test()` command from the `psych` package. If it has not been installed before, we can simply use `install.packages("psych")`, and then load the package.
+
+```r
+library(psych)
+r.test(20, 0.4463, -0.07687)
+```
+
+```
+## Correlation tests 
+## Call:r.test(n = 20, r12 = 0.4463, r34 = -0.07687)
+## Test of difference between two independent correlations 
+##  z value 1.62    with probability  0.1
+```
+
+
+> Is it correct to use a sample size of 20 while we know that some observations are missing for the two variables under study?
+
+In the preceding figure, we used different symbols to highlight men and women. The `groups=` argument is a better option, especially in the case where we are interested in adding a lowess smoother for each group. In the next figure, we will, however, display a group-specific regression line.
+
+```r
+xyplot(MRI_Count ~ Weight, data = brains, groups = Gender, type = c("p", "g", "r"), 
+    auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-79](figure/unnamed-chunk-79.png) 
+
+It is clear that a positive linear association only holds for females, although it remains of moderate magnitude. Using the logarithm (base 10) of MRI counts would not change the above picture and conclusions.
+
+A regression model can be fitted as follows:
+
+```r
+m <- lm(MRI_Count ~ Weight, data = brains)
+summary(m)
+```
+
+```
+## 
+## Call:
+## lm(formula = MRI_Count ~ Weight, data = brains)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -90606 -49957 -13021  27630 172878 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)   667090      67551    9.88  8.7e-12 ***
+## Weight          1587        442    3.59  0.00098 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+## 
+## Residual standard error: 63100 on 36 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared: 0.264,	Adjusted R-squared: 0.243 
+## F-statistic: 12.9 on 1 and 36 DF,  p-value: 0.00098
+```
+
+The `confint()` command can be used on almost all models fitted with R, and it returns $100(1-\alpha)$ confidence interval, where confidence level is set as `level=` (default is to use 95%). As can be seen, the 95% CI for the slope parameter does not include 0, in line with results from the t-test, and this suggests that there is a significant linear relationship between the two variables.
+
+```r
+confint(m)
+```
+
+```
+##                2.5 % 97.5 %
+## (Intercept) 530089.9 804090
+## Weight         690.1   2483
+```
+
+
+Finally, to verify assumptions about the distribution of residuals and the constant variance, we could use an histogram and a scatterplot with residuals by fitted values.
+
+```r
+histogram(~resid(m))
+```
+
+![plot of chunk unnamed-chunk-82](figure/unnamed-chunk-82.png) 
+
+```r
+## xyplot(resid(m) ~ fitted(m), abline = list(h = 0, lty = 2), type = c("p", "g", "smooth"))
+```
+
+
 

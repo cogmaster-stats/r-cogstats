@@ -1,10 +1,11 @@
 
 ## ----setup, cache=FALSE, include=FALSE-----------------------------------
 opts_knit$set(echo=FALSE, message=FALSE, progress=FALSE, 
-              cache=TRUE, verbose=FALSE, tidy=TRUE)
+              verbose=FALSE, tidy=TRUE)
 opts_knit$set(aliases=c(h='fig.height', w='fig.width',
                 cap='fig.cap', scap='fig.scap'))
 opts_knit$set(eval.after = c('fig.cap','fig.scap'))
+opts_chunk$set(cache=TRUE)
 knit_hooks$set(document = function(x) {
   gsub('(\\\\end\\{knitrout\\}[\n]+)', '\\1\\\\noindent ', x)
 })
@@ -398,5 +399,61 @@ bartlett.test(score ~ interaction(liq, scr), data=taste)
 t.test(score ~ scr, data=taste, var.equal=TRUE)
 library(MBESS)
 with(taste, smd(score[scr=="coarse"], score[scr=="fine"]))
+
+
+## ------------------------------------------------------------------------
+brains <- read.table("../data/brain_size.dat", header=TRUE, 
+                     na.strings=".")  
+str(brains)
+
+
+## ----, fig.height=5------------------------------------------------------
+xyplot(MRI_Count ~ Weight, data=brains, pch=as.numeric(brains$Gender), type=c("p", "g", "smooth"), auto.key=TRUE) 
+
+
+## ------------------------------------------------------------------------
+head(as.character(brains$Gender))
+head(as.numeric(brains$Gender))
+
+
+## ------------------------------------------------------------------------
+with(brains, cor(MRI_Count, Weight))
+
+
+## ------------------------------------------------------------------------
+with(brains, cor(MRI_Count, Weight, use="pair"))
+
+
+## ------------------------------------------------------------------------
+cor.test(~ MRI_Count + Weight, data=brains)
+
+
+## ----, eval=1------------------------------------------------------------
+cor.test(~ MRI_Count + Weight, data=subset(brains, Gender == "Female"))
+cor.test(~ MRI_Count + Weight, data=subset(brains, Gender == "Male"))
+
+
+## ------------------------------------------------------------------------
+library(psych)
+r.test(20, .4463, -.07687)
+
+
+## ----, fig.height=5------------------------------------------------------
+xyplot(MRI_Count ~ Weight, data=brains, groups=Gender, type=c("p", "g", "r"), auto.key=TRUE) 
+
+
+## ------------------------------------------------------------------------
+m <- lm(MRI_Count ~ Weight, data=brains)
+summary(m)
+
+
+## ------------------------------------------------------------------------
+confint(m)
+
+
+## ----, eval=1, fig.height=5----------------------------------------------
+histogram(~ resid(m))
+xyplot(resid(m) ~ fitted(m), abline=list(h=0, lty=2), 
+       type=c("p","g","smooth"))
 
 

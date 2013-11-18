@@ -2,10 +2,11 @@ Solutions
 ------------------------------
 ``` {r setup, cache=FALSE, include=FALSE}
 opts_knit$set(echo=FALSE, message=FALSE, progress=FALSE, 
-              cache=TRUE, verbose=FALSE, tidy=TRUE)
+              verbose=FALSE, tidy=TRUE)
 opts_knit$set(aliases=c(h='fig.height', w='fig.width',
                 cap='fig.cap', scap='fig.scap'))
 opts_knit$set(eval.after = c('fig.cap','fig.scap'))
+opts_chunk$set(cache=TRUE)
 knit_hooks$set(document = function(x) {
   gsub('(\\\\end\\{knitrout\\}[\n]+)', '\\1\\\\noindent ', x)
 })
@@ -525,6 +526,77 @@ Note that we would reach a similar conclusion (large effect of the `scr` factor)
 t.test(score ~ scr, data=taste, var.equal=TRUE)
 library(MBESS)
 with(taste, smd(score[scr=="coarse"], score[scr=="fine"]))
+```
+
+### Correlation and linear regression
+
+**Exercise 11.** A quick look at the raw data file will confirm that missing data are coded as ".". This need to be set a the default NA coding when importing the data.
+```{r}
+brains <- read.table("../data/brain_size.dat", header=TRUE, 
+                     na.strings=".")  
+str(brains)
+```
+
+Before computing any measure of linear association, it is useful to display a scatterplot of the data with `xyplot()` and a lowess smoother: 
+```{r, fig.height=5}
+xyplot(MRI_Count ~ Weight, data=brains, pch=as.numeric(brains$Gender), type=c("p", "g", "smooth"), auto.key=TRUE) 
+```
+We have highlighted gender levels by using separate character symbols: Recall that factor levels are stored as numeric values (starting at 1) with associated labels (sorted in lexicographic order) by R, hence in this case the `pch=` argument will take values 1 (Female, dots) and 2 (Male, triangles):
+```{r}
+head(as.character(brains$Gender))
+head(as.numeric(brains$Gender))
+```
+
+Pearson's correlation can be computed using `cor()` without further option. Instead of writing `cor(brains$MRI_Count, brains$Weight)`, we can use the `with()` shortcut which allows to work with data located in a specific data frame.
+```{r}
+with(brains, cor(MRI_Count, Weight))
+```
+As can be seen, R will return `NA` since there are missing values in the data. Instead, we need to tell R to compute correlation on complete pairwise observations (which can be abbreviated as `"pair"`, see the online help):
+```{r}
+with(brains, cor(MRI_Count, Weight, use="pair"))
+```
+
+However, the `cor()` command does not provide 95% confidence intervals, so we need to use  `cor.test()`, as shown below. This function offers a formula interface, which might be further exploited to compute results by gender.
+```{r}
+cor.test(~ MRI_Count + Weight, data=brains)
+```
+
+Since we can pass a data frame directly to `cor.test()`,  we can also subset its values by any logical filter. In particular, we could compute Pearson r for males and females as follows:
+```{r, eval=1}
+cor.test(~ MRI_Count + Weight, data=subset(brains, Gender == "Female"))
+cor.test(~ MRI_Count + Weight, data=subset(brains, Gender == "Male"))
+```
+
+To test the equality of the two correlation coefficients, we can use the `r.test()` command from the `psych` package. If it has not been installed before, we can simply use `install.packages("psych")`, and then load the package.
+```{r}
+library(psych)
+r.test(20, .4463, -.07687)
+```
+Nothing in the data allows us to reject the null hypothesis of equality of correlations in the two subgroups (P=0.1).
+
+> Is it correct to use a sample size of 20 while we know that some observations are missing for the two variables under study?
+
+In the preceding figure, we used different symbols to highlight men and women. The `groups=` argument is a better option, especially in the case where we are interested in adding a lowess smoother for each group. In the next figure, we will, however, display a group-specific regression line.
+```{r, fig.height=5}
+xyplot(MRI_Count ~ Weight, data=brains, groups=Gender, type=c("p", "g", "r"), auto.key=TRUE) 
+```
+It is clear that a positive linear association only holds for females, although it remains of moderate magnitude. Using the logarithm (base 10) of MRI counts would not change the above picture and conclusions.
+
+A regression model can be fitted as follows:
+```{r}
+m <- lm(MRI_Count ~ Weight, data=brains)
+summary(m)
+```
+The `confint()` command can be used on almost all models fitted with R, and it returns $100(1-\alpha)$ confidence interval, where confidence level is set as `level=` (default is to use 95%). As can be seen, the 95% CI for the slope parameter does not include 0, in line with results from the t-test, and this suggests that there is a significant linear relationship between the two variables.
+```{r}
+confint(m)
+```
+
+Finally, to verify the assumptions about the distribution of residuals and the constant variance, we could use an histogram and a scatterplot with residuals by fitted values.
+```{r, eval=1, fig.height=5}
+histogram(~ resid(m))
+xyplot(resid(m) ~ fitted(m), abline=list(h=0, lty=2), 
+       type=c("p","g","smooth"))
 ```
 
 
