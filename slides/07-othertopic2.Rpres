@@ -1,0 +1,164 @@
+ANOVA and the linear model (2)
+========================================================
+author: Christophe Lalanne
+date: November 19, 2013
+css: custom.css
+
+```{r, include=FALSE}
+library(xtable)
+library(knitcitations)
+cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG")
+options(reindent.spaces=2, show.signif.stars=FALSE)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(custom.theme.2())
+trellis.par.set(plot.symbol=list(pch=19, cex=1.2),
+                strip.background = list(col = "transparent"), 
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+Synopsis
+========================================================
+type: sub-section
+
+The analysis of variance is not a mathematical theorem, but rather a convenient method of arranging the arithmetic. Ronald Fisher (1890-1962)
+
+> orthogonal contrasts • post-hoc comparisons • unbalanced data
+
+The ANOVA model
+========================================================
+
+One-way ANOVA:
+$$
+y_{ij} = \mu + \alpha_i + \varepsilon_{ij},\quad \varepsilon_{ij}\sim {\cal N}(0,\sigma^2).
+$$
+
+Two-way ANOVA
+$$
+y_{ijk} = \mu + \alpha_i + \beta_j + \gamma_{ij} + \varepsilon_{ijk},\quad \varepsilon_{ijk}\sim {\cal N}(0,\sigma^2).
+$$
+
+When a factor has more than 2 levels, or when the interaction between the two factors is of interest, this involves *post-hoc* **multiple comparisons** of pairs of means.
+
+Orthogonal contrasts
+========================================================
+
+With $k$ samples (treatments), we can define $k-1$ orthogonal contrasts
+$$
+\phi = \sum_{i=1}^kc_i\overline{x}_i,\quad \sum_ic_i=0\; \text{et}\; \phi_u^t\phi_v^{\phantom{t}}=0
+$$
+and use as a test statistic $\frac{\phi}{s_{\phi}}$, where $s_{\phi}^2=s^2\sum_i\frac{c_i^2}{n_i}$, which is distributed as a Student's t.
+
+- `contr.treatment`: treatment contrast (dummy coding), $k-1$ last levels compared to baseline category
+- `contr.sum`: deviation contrast, $k-1$ first levels compared to the mean of the group means
+- `contr.poly`: polynomial contrast (factor with ordered levels only), to test for linear, quadratic, cublic trend.
+
+Orthogonal contrasts (Con't)
+========================================================
+
+```{r}
+contr.treatment(levels(grp <- gl(3, 2, 36, c("A","B","C"))))
+y <- 0.5 * as.numeric(grp) + rnorm(36); 
+coef(lm(y ~ grp))
+coef(lm(y ~ grp, contrasts=list(grp="contr.sum")))
+```
+
+Application
+========================================================
+
+Consider a factor A with 4 levels and 8 observations per group.
+```{r}
+set.seed(101)
+n <- 8
+A <- gl(4, n, 4*n, labels=paste("a", 1:4, sep=""))
+y <- 0.5 * as.numeric(A) + rnorm(4*n)
+d <- data.frame(y, A)
+print(mm <- tapply(y, A, mean))
+```
+One-way ANOVA model:  
+$H_0:\mu_1=\mu_2=\mu_3=\mu_4$, SS=11.38, F(3,28)=6.036 (p=0.00264).  
+Let us assume that we are interested in the following comparisons: $H_0^{(1)}:(\mu_1+\mu_2)/2=(\mu_3+\mu_4)/2$, $H_0^{(2)}:\mu_1=\mu_2$ and $H_0^{(3)}:\mu_3=\mu_4$.
+
+Application (Con't)
+========================================================
+
+```{r}
+cm <- cbind(c(-1,-1,1,1), c(-1,1,0,0), c(0,0,-1,1))
+contrasts(d$A) <- cm
+summary(lm(y ~ A, data=d))
+```
+
+Application (Con't)
+========================================================
+
+```{r}
+as.numeric((t(cm) %*% mm) / c(4, 2, 2))
+library(multcomp)
+summary(glht(aov(y ~ A, d), linfct = mcp(A = c("a1 - a2 = 0"))))
+```
+
+Multiples comparisons
+========================================================
+
+With $k$ samples, there are $k(k-1)/2$ pairs of means to compare. With $k=4$ and  $\alpha=0.05$, the family wise error rate (FWER) becomes $1-(1-0.05)^6=0.265$, assuming tests are independent.
+
+There are two general (and conservative) strategies to control the inflation of Type I errors: `r citep(bib[c("christensen02")])`
+
+- consider a different test statistic (e.g., HSD Tukey)
+- consider a different nominal Type I error (e.g., Bonferroni correction)
+
+```{r}
+p.adjust.methods
+```
+
+Application
+========================================================
+
+Usually, Bonferroni correction is applied to unplanned comparisons, and it can be restricted to a subset of all possible tests.
+```{r}
+pairwise.t.test(y, A, p.adjust.method="bonf")
+```
+
+Application (Con't)
+========================================================
+
+Tukey HSD tests usually follow a significant ANOVA, and they are applied to all pairs of means.
+```{r, eval=1}
+TukeyHSD(aov(y ~ A, d))
+plot(TukeyHSD(aov(y ~ A, d)))
+```
+
+Unbalanced data
+========================================================
+
+When the number of observations differ in each treatment, we are more concerned with how to compute sum of squares `r citep(bib[c("herr86")])`.
+
+For two factors, A and B:
+
+- Type I (default): SS($A$), SS($B|A$), then SS($AB|B$, $A$)
+- Type II: SS($A|B$), then SS($B|A$) (no interaction)
+- Type III: SS($A|B$, $AB$), SS($B|A$, $AB$) (interpret each main effect after having accounted for other main effects and the interaction)
+
+
+
+References
+========================================================
+
+```{r, echo=FALSE, results='asis'}
+bibliography(style="text")
+```
+
