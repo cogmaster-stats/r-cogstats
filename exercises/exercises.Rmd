@@ -134,7 +134,7 @@ rm(grp, resp)   # delete original variables
 *Hint:* Be careful with missing data when loading the data.
 
 1. Compute the linear correlation between `MRI_count` and `Weight`, with its 95% confidence interval.
-2. Estimate Pearson's r between these two variables in men and in females. Can they be considered different from a statistical point of view? *Hint:* You can use the `r.test()` command from the [psych](http://cran.r-project.org/web/packages/psych/) package (`install.packages("psych")`).
+2. Estimate Pearson's r between these two variables in men and in females. Can they be considered different from a statistical point of view? *Hint:* You can use the `r.test()` command from the [psych](http://cran.r-project.org/web/packages/psych/) package (`install.packages("psych")`) or `corXY()` from `epibasix`.
 3. Show in a scatterplot the relationship between `MRI_count` and `Weight` , highlighted by gender levels.
 4. Compute the slope of the regression line for the model given by the following formula `fm <- MRI_count ~ Weight`. Does its 95% confidence interval include the value 0?
 5. Show the distribution of residuals for this model using an histogram or a density plot.
@@ -150,7 +150,7 @@ rm(grp, resp)   # delete original variables
 
 **13.** Consider the `ToothGrowth` dataset, available in R with the following command:
 ```{r, eval=FALSE}
-data(TootGrowth, package="MASS")
+data(ToothGrowth)
 ```
 We are interested in studying the effect of `dose` alone (i.e., don't pay attention to the `supp` factor). Compare and discuss the results of the following models:
 
