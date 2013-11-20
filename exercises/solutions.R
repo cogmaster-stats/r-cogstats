@@ -457,3 +457,152 @@ xyplot(resid(m) ~ fitted(m), abline=list(h=0, lty=2),
        type=c("p","g","smooth"))
 
 
+## ------------------------------------------------------------------------
+load("../data/sim.rda")
+dim(sim)
+sim[1:5,1:5]
+
+
+## ----, fig.height=5------------------------------------------------------
+splom(~ sim[,1:5], type=c("p","g","smooth"), cex=.6, alpha=.5)
+
+
+## ------------------------------------------------------------------------
+pv <- numeric(43)
+for (i in 2:44) 
+  pv[i-1] <- cor.test(sim[,"y"], sim[,i])$p.value
+summary(pv)
+sort(pv)[1:4]
+
+
+## ------------------------------------------------------------------------
+pvc <- p.adjust(pv, method="bonf")
+-log10(pvc[1:4])
+sum(pvc <= .05) # -log10(pvc) >= 1.30 
+
+
+## ------------------------------------------------------------------------
+selx <- which(pv <= .05)
+d <- data.frame(sim[,c(1,selx+1)])
+summary(lm(y ~ ., data=d))
+
+
+## ------------------------------------------------------------------------
+data(ToothGrowth)
+ToothGrowth$dose <- factor(ToothGrowth$dose)
+head(ToothGrowth$dose)
+
+
+## ------------------------------------------------------------------------
+m1 <- aov(len ~ dose, data=ToothGrowth)
+ToothGrowth$dose <- ordered(ToothGrowth$dose)
+m2 <- aov(len ~ dose, data=ToothGrowth)
+m3 <- lm(len ~ as.numeric(dose), data=ToothGrowth)
+m4 <- lm(len ~ as.numeric(dose) + I(as.numeric(dose)^2), data=ToothGrowth)
+summary(m1)
+summary(m2, split=list(dose=c(1,2)))
+anova(m3)
+anova(m4)
+
+
+## ------------------------------------------------------------------------
+round(contr.poly(levels(ToothGrowth$dose)), 3)
+
+
+## ------------------------------------------------------------------------
+class(taste$scr)
+taste$scr <- as.numeric(taste$scr)-1
+class(taste$scr)
+table(taste$scr)
+
+
+## ----, fig.height=5------------------------------------------------------
+xyplot(score ~ scr, data=taste, type=c("p","g","r"), alpha=.75)
+
+
+## ------------------------------------------------------------------------
+m <- lm(score ~ scr, data=taste)
+coef(m)
+summary(m)
+
+
+## ------------------------------------------------------------------------
+aggregate(score ~ scr, data=taste, mean)
+diff(aggregate(score ~ scr, data=taste, mean)$score)
+
+
+## ------------------------------------------------------------------------
+head(taste$score - fitted(m))
+head(resid(m))
+
+
+## ------------------------------------------------------------------------
+unique(fitted(m))
+
+
+## ------------------------------------------------------------------------
+t.test(score ~ scr, data=taste, var.equal=TRUE)
+
+
+## ------------------------------------------------------------------------
+taste$scr[taste$scr == 0] <- -1
+summary(lm(score ~ scr, data=taste))
+mean(taste$score)
+with(taste, tapply(score, scr, mean) - mean(score))
+
+
+## ------------------------------------------------------------------------
+load("../data/rats.rda")
+rat <- within(rat, {
+  Diet.Amount <- factor(Diet.Amount, levels=1:2, 
+                        labels=c("High","Low"))
+  Diet.Type <- factor(Diet.Type, levels=1:3, 
+                        labels=c("Beef","Pork","Cereal")) 
+  })
+
+
+## ----, fig.height=5------------------------------------------------------
+xyplot(Weight.Gain ~ Diet.Type, data=rat, groups=Diet.Amount, type=c("a","g"), abline=list(h=mean(rat$Weight.Gain), lty=2), auto.key=TRUE)
+
+
+## ------------------------------------------------------------------------
+tx <- with(rat, interaction(Diet.Amount, Diet.Type, sep="/"))
+head(tx)
+unique(table(tx))  # obs / treatment
+
+
+## ------------------------------------------------------------------------
+m <- aov(Weight.Gain ~ tx, data=rat)
+summary(m)
+
+
+## ------------------------------------------------------------------------
+pairwise.t.test(rat$Weight.Gain, tx, p.adjust="bonf")
+
+
+## ------------------------------------------------------------------------
+ctr <- cbind(c(-1,-1,-1,-1,2,2)/6, 
+             c(-1,-1,1,1,0,0)/4,
+             c(-1,1,-1,1,-1,1)/6,
+             c(1,-1,1,-1,-2,2)/6,  # C1 x C3
+             c(1,-1,-1,1,0,0)/4)   # C2 x C3
+crossprod(ctr)
+
+
+## ------------------------------------------------------------------------
+contrasts(tx) <- ctr
+m <- aov(rat$Weight.Gain ~ tx)
+summary(m, split=list(tx=1:5))
+
+
+## ------------------------------------------------------------------------
+summary(aov(Weight.Gain ~ Diet.Type * Diet.Amount, data=rat))
+
+
+## ----, message=FALSE-----------------------------------------------------
+tx <- with(rat, interaction(Diet.Amount, Diet.Type, sep="/"))
+C6 <- c(2,-1,2,-1,-1,-1)/6
+library(multcomp)
+summary(glht(aov(rat$Weight.Gain ~ tx), linfct=mcp(tx=C6)))
+
+

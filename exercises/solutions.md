@@ -1377,6 +1377,7 @@ r.test(20, 0.4463, -0.07687)
 ##  z value 1.62    with probability  0.1
 ```
 
+Nothing in the data allows us to reject the null hypothesis of equality of correlations in the two subgroups (P=0.1).
 
 > Is it correct to use a sample size of 20 while we know that some observations are missing for the two variables under study?
 
@@ -1433,7 +1434,7 @@ confint(m)
 ```
 
 
-Finally, to verify assumptions about the distribution of residuals and the constant variance, we could use an histogram and a scatterplot with residuals by fitted values.
+Finally, to verify the assumptions about the distribution of residuals and the constant variance, we could use an histogram and a scatterplot with residuals by fitted values.
 
 ```r
 histogram(~resid(m))
@@ -1445,5 +1446,595 @@ histogram(~resid(m))
 ## xyplot(resid(m) ~ fitted(m), abline = list(h = 0, lty = 2), type = c("p", "g", "smooth"))
 ```
 
+Using `densityplot(~ resid(m))` would produce a density plot rather than an histogram.
 
+**Exercise 12.** We will import the data using the `load()` command since the data set is already in R format (`rda` or `RData` extension). Before processing the data to perform feature selection, we will also take a look at the raw data.
+
+```r
+load("../data/sim.rda")
+dim(sim)
+```
+
+```
+## [1] 80 44
+```
+
+```r
+sim[1:5, 1:5]
+```
+
+```
+##             y      x1      x2      x3       x4
+## [1,] -0.26476  0.2105 -0.7322 -0.3599 -1.68919
+## [2,] -0.05593  0.3896  0.6285 -0.1553 -0.11142
+## [3,] -1.38563  1.8925  1.8526 -2.7920  1.64859
+## [4,]  0.97564 -1.8488 -1.3202  0.6153 -0.01402
+## [5,]  0.81124 -0.4780 -0.3865  0.0325  0.39491
+```
+
+Note that `sim` is not a data frame, but a matrix (meaning that variables can only be addressed by their number in the table, and not using the `$` operator followed by their name; e.g., `sim[,1]` would return values for `y`, we could also use `sim[,"y"]`, but not `sim$y`).
+
+A scatterplot matrix can also be used to display pairwise relationship between variables, although in this case the high number of variables does not lend itself to such visual display.
+
+```r
+splom(~sim[, 1:5], type = c("p", "g", "smooth"), cex = 0.6, alpha = 0.5)
+```
+
+![plot of chunk unnamed-chunk-84](figure/unnamed-chunk-84.png) 
+
+
+We need to compute all pairwise correlations between $y$ and the $x_i$s. This can be done in several ways, but here is how it can be done using a simple `for` loop: we first create a vector holding correlation values, and then iterate over variables 2 to 43 in the data matrix.
+
+```r
+pv <- numeric(43)
+for (i in 2:44) pv[i - 1] <- cor.test(sim[, "y"], sim[, i])$p.value
+summary(pv)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   0.000   0.132   0.295   0.395   0.659   0.988
+```
+
+```r
+sort(pv)[1:4]
+```
+
+```
+## [1] 1.938e-08 1.175e-07 1.506e-03 1.631e-02
+```
+
+The last command prints the four lowest p-values. If we want to adjust all p-values with Bonferroni method, we can use the following:
+
+```r
+pvc <- p.adjust(pv, method = "bonf")
+-log10(pvc[1:4])
+```
+
+```
+## [1] 6.079 5.297 0.000 0.000
+```
+
+```r
+sum(pvc <= 0.05)  # -log10(pvc) >= 1.30 
+```
+
+```
+## [1] 2
+```
+
+Note that it is often useful to work with log-transformed p-values (for plotting purpose).
+
+Univariate screening of candidate predictors are interesting on their own, but as we have seen it is necessary to correct for multiple testing in case the significance of the test (and not, say, an effect size measure) is used to single out irrelevant predictors. Bonferroni-corrected tests are known to be conservative, and it is assumed that tests are independent. Finally, this correlation approach is blind to partial correlation (one $x_i$ associated to $y$ through its correlation with $x_j$).
+
+Lastly, if we consider variables correlating to $y$ at a 5% (uncorrect) level, we can fit a regression model as suggested below. The idea is to create a new data frame holding the `y` response variable and predictors whose column position (minus 1) were stored in the `pv` variable.
+
+```r
+selx <- which(pv <= 0.05)
+d <- data.frame(sim[, c(1, selx + 1)])
+summary(lm(y ~ ., data = d))
+```
+
+```
+## 
+## Call:
+## lm(formula = y ~ ., data = d)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.3811 -0.2758 -0.0487  0.3202  1.6131 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)   0.1211     0.0714    1.70  0.09405 .  
+## x1           -0.3531     0.0926   -3.81  0.00029 ***
+## x2           -0.2511     0.0969   -2.59  0.01164 *  
+## x5            0.1410     0.0895    1.58  0.11965    
+## x8           -0.1535     0.0732   -2.10  0.03957 *  
+## x12           0.1419     0.0719    1.97  0.05230 .  
+## x13          -0.1554     0.0769   -2.02  0.04707 *  
+## x22          -0.1027     0.0700   -1.47  0.14718    
+## x43          -0.0993     0.0725   -1.37  0.17514    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+## 
+## Residual standard error: 0.617 on 71 degrees of freedom
+## Multiple R-squared: 0.584,	Adjusted R-squared: 0.537 
+## F-statistic: 12.5 on 8 and 71 DF,  p-value: 5.63e-11
+```
+
+
+### ANOVA and regression
+
+**Exercise 13.** Data can be loaded and pre-processed very easily:
+
+```r
+data(ToothGrowth)
+ToothGrowth$dose <- factor(ToothGrowth$dose)
+head(ToothGrowth$dose)
+```
+
+```
+## [1] 0.5 0.5 0.5 0.5 0.5 0.5
+## Levels: 0.5 1 2
+```
+
+
+Results from the different models are summarized below: 
+
+- (m1) One-way ANOVA with `dose` treated as a factor with unordered levels.
+- (m2) One-way ANOVA with `dose` treated as a factor with ordered levels.
+- (m3) Linear regression with `dose` treated as a numeric variable.
+- (m4) Linear regression including linear and quadratic effect for `dose`.
+
+
+```r
+m1 <- aov(len ~ dose, data = ToothGrowth)
+ToothGrowth$dose <- ordered(ToothGrowth$dose)
+m2 <- aov(len ~ dose, data = ToothGrowth)
+m3 <- lm(len ~ as.numeric(dose), data = ToothGrowth)
+m4 <- lm(len ~ as.numeric(dose) + I(as.numeric(dose)^2), data = ToothGrowth)
+summary(m1)
+```
+
+```
+##             Df Sum Sq Mean Sq F value  Pr(>F)    
+## dose         2   2426    1213    67.4 9.5e-16 ***
+## Residuals   57   1026      18                    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+summary(m2, split = list(dose = c(1, 2)))
+```
+
+```
+##             Df Sum Sq Mean Sq F value  Pr(>F)    
+## dose         2   2426    1213   67.42 9.5e-16 ***
+##   dose: C1   1   2401    2401  133.42 < 2e-16 ***
+##   dose: C2   1     25      25    1.42    0.24    
+## Residuals   57   1026      18                    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+anova(m3)
+```
+
+```
+## Analysis of Variance Table
+## 
+## Response: len
+##                  Df Sum Sq Mean Sq F value Pr(>F)    
+## as.numeric(dose)  1   2401    2401     132 <2e-16 ***
+## Residuals        58   1051      18                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+anova(m4)
+```
+
+```
+## Analysis of Variance Table
+## 
+## Response: len
+##                       Df Sum Sq Mean Sq F value Pr(>F)    
+## as.numeric(dose)       1   2401    2401  133.42 <2e-16 ***
+## I(as.numeric(dose)^2)  1     25      25    1.42   0.24    
+## Residuals             57   1026      18                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+In the first model, the total variance is separated into two sources: dose effect and residuals, while in the second model polynomial contrasts are automatically added and tested by R since `dose` is now an ordered factor. More precicely, the following contrast matrix is used:
+
+```r
+round(contr.poly(levels(ToothGrowth$dose)), 3)
+```
+
+```
+##          .L     .Q
+## [1,] -0.707  0.408
+## [2,]  0.000 -0.816
+## [3,]  0.707  0.408
+```
+
+However, the total SS associated to `dose` (2426) remains the same as in `m1`: we are not adding anything to the model, but rather test the 3-level dose effect using two orthogonal contrasts–one for the linear trend (`C1`), and the other for a quadratic trend (`C2`). The results suggest that only the linear component really matters.
+
+The next two models treat dose as a numerical variable with equally spaced values, and not observed values (which would be obtained with `as.numeric(as.character(dose)`). The SSs associated to the linear (`m3` and `m4`) and quadratic (`m4`) are essentially the same as in the ANOVA models. A regression model applied to categorical variables where levels are treated as numerical values can be used to test the linearity of the relationship between the response and explanatory variables.
+
+**Exercise 14.** As data were already loaded in Exercise 10, we will continue from there. We just need to recode `scr` as a numerical predictor.
+
+```r
+class(taste$scr)
+```
+
+```
+## [1] "factor"
+```
+
+```r
+taste$scr <- as.numeric(taste$scr) - 1
+class(taste$scr)
+```
+
+```
+## [1] "numeric"
+```
+
+```r
+table(taste$scr)
+```
+
+```
+## 
+## 0 1 
+## 8 8
+```
+
+Since factor levels started at 1, we can simply substract 1 after having called `as.numeric` to the `scr` variable. A simple table of counts is helpful to check that we didn't miss any observation. 
+
+A simple scatterplot can be used to visually inspect the joint distribution of the two variables. Adding `type="r"` when calling `xyplot()` will also display a regression line.
+
+```r
+xyplot(score ~ scr, data = taste, type = c("p", "g", "r"), alpha = 0.75)
+```
+
+![plot of chunk unnamed-chunk-92](figure/unnamed-chunk-92.png) 
+
+
+A regression model can be fitted using `lm()`.
+
+```r
+m <- lm(score ~ scr, data = taste)
+coef(m)
+```
+
+```
+## (Intercept)         scr 
+##       38.88       51.50
+```
+
+```r
+summary(m)
+```
+
+```
+## 
+## Call:
+## lm(formula = score ~ scr, data = taste)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -26.38 -15.62  -1.88   8.38  38.62 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    38.88       7.39    5.26  0.00012 ***
+## scr            51.50      10.45    4.93  0.00022 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+## 
+## Residual standard error: 20.9 on 14 degrees of freedom
+## Multiple R-squared: 0.634,	Adjusted R-squared: 0.608 
+## F-statistic: 24.3 on 1 and 14 DF,  p-value: 0.000222
+```
+
+
+The slope of the regression line simply reflects the difference in means between the two conditions since `scr` is now a 0/1 variable. The intercept is equal to the mean in the first condition. Note that the slope wouldn't change if we were to code `scr` as 1/2 instead of 0/1, but the intercept would be different since it is the value of the response variable when the predictor equals 0.
+
+```r
+aggregate(score ~ scr, data = taste, mean)
+```
+
+```
+##   scr score
+## 1   0 38.88
+## 2   1 90.38
+```
+
+```r
+diff(aggregate(score ~ scr, data = taste, mean)$score)
+```
+
+```
+## [1] 51.5
+```
+
+
+The `taste$SCORE - fitted(m)` values reflect deviations between observed and fitted values. This is what we call the residuals of the model:
+
+```r
+head(taste$score - fitted(m))
+```
+
+```
+##       1       2       3       4       5       6 
+##  -3.875   0.125  38.125 -22.875  13.625  38.625
+```
+
+```r
+head(resid(m))
+```
+
+```
+##       1       2       3       4       5       6 
+##  -3.875   0.125  38.125 -22.875  13.625  38.625
+```
+
+Moreover, as can be seen below,
+
+```r
+unique(fitted(m))
+```
+
+```
+## [1] 38.88 90.38
+```
+
+predicted values are simply means in each condition.
+
+Compared to a classical t-test,
+
+```r
+t.test(score ~ scr, data = taste, var.equal = TRUE)
+```
+
+```
+## 
+## 	Two Sample t-test
+## 
+## data:  score by scr 
+## t = -4.929, df = 14, p-value = 0.0002218
+## alternative hypothesis: true difference in means is not equal to 0 
+## 95 percent confidence interval:
+##  -73.91 -29.09 
+## sample estimates:
+## mean in group 0 mean in group 1 
+##           38.88           90.38
+```
+
+except for the sign of the test statistic (which depends on the order of the levels), we find again comparable reference (mean in the reference group and difference of means), and the F-statistic for the regression model is just the square of the above t value.
+
+Now, if we change coding of factor levels using {-1,1} instead of {0,1} the intercept now equals the grand mean (i.e., the average of both group means), and the slope now reflects deviation of mean scores in the second group from the grand mean.
+
+```r
+taste$scr[taste$scr == 0] <- -1
+summary(lm(score ~ scr, data = taste))
+```
+
+```
+## 
+## Call:
+## lm(formula = score ~ scr, data = taste)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -26.38 -15.62  -1.88   8.38  38.62 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    64.62       5.22   12.37  6.3e-09 ***
+## scr            25.75       5.22    4.93  0.00022 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+## 
+## Residual standard error: 20.9 on 14 degrees of freedom
+## Multiple R-squared: 0.634,	Adjusted R-squared: 0.608 
+## F-statistic: 24.3 on 1 and 14 DF,  p-value: 0.000222
+```
+
+```r
+mean(taste$score)
+```
+
+```
+## [1] 64.62
+```
+
+```r
+with(taste, tapply(score, scr, mean) - mean(score))
+```
+
+```
+##     -1      1 
+## -25.75  25.75
+```
+
+
+**Exercise 15.** Let us first load the data as indicated.
+
+```r
+load("../data/rats.rda")
+rat <- within(rat, {
+    Diet.Amount <- factor(Diet.Amount, levels = 1:2, labels = c("High", "Low"))
+    Diet.Type <- factor(Diet.Type, levels = 1:3, labels = c("Beef", "Pork", "Cereal"))
+})
+```
+
+
+An interaction plot is readily constructed by plotting the response variable against one of the two predictors, and using the other one as a grouping variable.
+
+```r
+xyplot(Weight.Gain ~ Diet.Type, data = rat, groups = Diet.Amount, type = c("a", "g"), 
+    abline = list(h = mean(rat$Weight.Gain), lty = 2), auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-100](figure/unnamed-chunk-100.png) 
+
+The horizontal dashed line is the grand mean.
+
+The 6 treatments, `Beef/High`, `Beef/Low`, `Pork/High`, `Pork/Low`, `Cereal/High`, and `Cereal/Low`, correspond to all combination of factor levels. They can be generated as follows:
+
+```r
+tx <- with(rat, interaction(Diet.Amount, Diet.Type, sep = "/"))
+head(tx)
+```
+
+```
+## [1] High/Beef High/Beef High/Beef High/Beef High/Beef High/Beef
+## Levels: High/Beef Low/Beef High/Pork Low/Pork High/Cereal Low/Cereal
+```
+
+```r
+unique(table(tx))  # obs / treatment
+```
+
+```
+## [1] 10
+```
+
+
+It can be seen that the one-way ANOVA F-test is significant, suggesting that some pairs of means differ when we consider all 6 treatments.
+
+```r
+m <- aov(Weight.Gain ~ tx, data = rat)
+summary(m)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(>F)   
+## tx           5   4613     923     4.3 0.0023 **
+## Residuals   54  11586     215                  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+To identify pairs of means significantly different at a 5% FWER-corrected level, we can use `pairwise.t.test()`:
+
+```r
+pairwise.t.test(rat$Weight.Gain, tx, p.adjust = "bonf")
+```
+
+```
+## 
+## 	Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  rat$Weight.Gain and tx 
+## 
+##             High/Beef Low/Beef High/Pork Low/Pork High/Cereal
+## Low/Beef    0.037     -        -         -        -          
+## High/Pork   1.000     0.046    -         -        -          
+## Low/Pork    0.030     1.000    0.037     -        -          
+## High/Cereal 0.538     1.000    0.640     1.000    -          
+## Low/Cereal  0.258     1.000    0.312     1.000    1.000      
+## 
+## P value adjustment method: bonferroni
+```
+
+Results from these tests suggest that difference exist only for `Pork/High` vs. `Pork/Low`, `Beef/High` vs. `Beef/Low`, and `Beef/Low` vs. `Pork/High`, as suggested by the interaction plot.
+
+To build the requested matrix of contrasts, we can use the following commands:
+
+```r
+ctr <- cbind(c(-1,-1,-1,-1,2,2)/6, 
+             c(-1,-1,1,1,0,0)/4,
+             c(-1,1,-1,1,-1,1)/6,
+             c(1,-1,1,-1,-2,2)/6,  # C1 x C3
+             c(1,-1,-1,1,0,0)/4)   # C2 x C3
+crossprod(ctr)
+```
+
+```
+##        [,1] [,2]   [,3]   [,4] [,5]
+## [1,] 0.3333 0.00 0.0000 0.0000 0.00
+## [2,] 0.0000 0.25 0.0000 0.0000 0.00
+## [3,] 0.0000 0.00 0.1667 0.0000 0.00
+## [4,] 0.0000 0.00 0.0000 0.3333 0.00
+## [5,] 0.0000 0.00 0.0000 0.0000 0.25
+```
+
+The last command allows to check that all contrasts are orthogonal one to the other. The last two contrasts allows to test for the interaction between the two factors, and thus are derived from the product of contrasts coding for the main effects of these factors. These constrasts can be directly associated to the `tx` factor, and tested using the `aov()` command. Again we will 'split' the ANOVA table to highlight the different contrasts in the output.
+
+```r
+contrasts(tx) <- ctr
+m <- aov(rat$Weight.Gain ~ tx)
+summary(m, split = list(tx = 1:5))
+```
+
+```
+##             Df Sum Sq Mean Sq F value  Pr(>F)    
+## tx           5   4613     923    4.30 0.00230 ** 
+##   tx: C1     1    264     264    1.23 0.27221    
+##   tx: C2     1      3       3    0.01 0.91444    
+##   tx: C3     1   3168    3168   14.77 0.00032 ***
+##   tx: C4     1   1178    1178    5.49 0.02283 *  
+##   tx: C5     1      0       0    0.00 1.00000    
+## Residuals   54  11586     215                    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+Let us compare these results with what would be obtained from a two-way ANOVA:
+
+```r
+summary(aov(Weight.Gain ~ Diet.Type * Diet.Amount, data = rat))
+```
+
+```
+##                       Df Sum Sq Mean Sq F value  Pr(>F)    
+## Diet.Type              2    267     133    0.62 0.54113    
+## Diet.Amount            1   3168    3168   14.77 0.00032 ***
+## Diet.Type:Diet.Amount  2   1178     589    2.75 0.07319 .  
+## Residuals             54  11586     215                    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+The SS associated to the two factors and their interaction equals 4613, and the preceding table suggest that there is no effect of diet type, but that diet amount is slightly interacting with diet type. The F-test for `Diet.Amount` is exactly the same as that of the third contrast stored in `ctr`.
+
+Finally, a contrast opposing `Beef/High` and `Pork/High` to all other treatments can be buld and tested as shown below:
+
+```r
+tx <- with(rat, interaction(Diet.Amount, Diet.Type, sep = "/"))
+C6 <- c(2, -1, 2, -1, -1, -1)/6
+library(multcomp)
+summary(glht(aov(rat$Weight.Gain ~ tx), linfct = mcp(tx = C6)))
+```
+
+```
+## 
+## 	 Simultaneous Tests for General Linear Hypotheses
+## 
+## Multiple Comparisons of Means: User-defined Contrasts
+## 
+## 
+## Fit: aov(formula = rat$Weight.Gain ~ tx)
+## 
+## Linear Hypotheses:
+##        Estimate Std. Error t value Pr(>|t|)    
+## 1 == 0    11.88       2.67    4.44  4.4e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+## (Adjusted p values reported -- single-step method)
+```
+
+We gain found a significant effect suggesting that average weight gain in those two conditions is larger than in the other ones.
 
