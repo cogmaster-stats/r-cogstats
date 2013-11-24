@@ -1,17 +1,18 @@
-<!--- Time-stamp: <2013-11-23 20:48:50 chl> -->
+<!--- Time-stamp: <2013-11-24 19:32:50 chl> -->
 
 <!--- To generate HTML output:
 library(knitr)
 library(markdown)
-knit("hmisc.rmd")
-markdownToHTML("hmisc.md", "hmisc.html", stylesheet = "styles.css")
+knit("hmisc.rmd", quiet=TRUE)
+markdownToHTML("hmisc.md", "hmisc.html", stylesheet="styles.css", option=c("highlight_code", "toc"), title="Hmisc and rms")
+browseURL("hmisc.html")
 -->
 
 
 
 
 
-# The Hmisc and rms packages
+<p style="font-size: 200%; font-weight: bold; text-align: center;">The Hmisc and rms packages</p>
 
 The [Hmisc][1] and [rms][2] packages provide a wide range of tools for data
 transformation, aggregated visual and numerical summaries, and enhanced R's
@@ -108,6 +109,11 @@ list.tree(birthwt)  ## equivalent to str(birthwt)
 ```
 
 
+The last command, `list.tree()`, offers a convenient replacement for R's
+`str()`, and in addition to variable type and a list of the first
+observation for each variable it will display `Hmisc` labels associated to
+them. 
+
 The `contents()` command offers a quick summary of data format and missing
 values, and it provides a list of labels associated to variables treated as
 factor by R.
@@ -158,55 +164,60 @@ describe(birthwt, digits = 3)
 ## birthwt 
 ## 
 ##  10  Variables      189  Observations
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## low 
 ##       n missing  unique 
 ##     189       0       2 
 ## 
 ## No (130, 69%), Yes (59, 31%) 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## age : Mother age [years] 
-##       n missing  unique    Mean     .05     .10     .25     .50     .75     .90     .95 
-##     188       1      24    23.3      16      17      19      23      26      31      32 
+##       n missing  unique    Mean     .05     .10     .25     .50     .75 
+##     188       1      24    23.3      16      17      19      23      26 
+##     .90     .95 
+##      31      32 
 ## 
 ## lowest : 14 15 16 17 18, highest: 33 34 35 36 45 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## lwt 
-##       n missing  unique    Mean     .05     .10     .25     .50     .75     .90     .95 
-##     189       0      75      59    42.9    45.3    50.0    55.0    63.6    77.3    85.5 
+##       n missing  unique    Mean     .05     .10     .25     .50     .75 
+##     189       0      75      59    42.9    45.3    50.0    55.0    63.6 
+##     .90     .95 
+##    77.3    85.5 
 ## 
-## lowest :  36.4  38.6  40.5  40.9  41.4, highest:  97.7 104.1 106.8 109.5 113.6 
-## ------------------------------------------------------------------------------------------
+## lowest :  36.4  38.6  40.5  40.9  41.4
+## highest:  97.7 104.1 106.8 109.5 113.6 
+## ---------------------------------------------------------------------------
 ## race 
 ##       n missing  unique 
 ##     189       0       3 
 ## 
 ## White (96, 51%), Black (26, 14%), Other (67, 35%) 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## smoke 
 ##       n missing  unique 
 ##     189       0       2 
 ## 
 ## No (115, 61%), Yes (74, 39%) 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## ptl 
 ##       n missing  unique    Mean 
 ##     189       0       4   0.196 
 ## 
 ## 0 (159, 84%), 1 (24, 13%), 2 (5, 3%), 3 (1, 1%) 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## ht 
 ##       n missing  unique 
 ##     189       0       2 
 ## 
 ## No (177, 94%), Yes (12, 6%) 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## ui 
 ##       n missing  unique 
 ##     189       0       2 
 ## 
 ## No (161, 85%), Yes (28, 15%) 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## ftv 
 ##       n missing  unique    Mean 
 ##     184       5       6   0.799 
@@ -214,13 +225,15 @@ describe(birthwt, digits = 3)
 ##            0  1  2 3 4 6
 ## Frequency 97 46 29 7 4 1
 ## %         53 25 16 4 2 1
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ## bwt : Baby weight [grams] 
-##       n missing  unique    Mean     .05     .10     .25     .50     .75     .90     .95 
-##     189       0     131    2945    1801    2038    2414    2977    3487    3865    3997 
+##       n missing  unique    Mean     .05     .10     .25     .50     .75 
+##     189       0     131    2945    1801    2038    2414    2977    3487 
+##     .90     .95 
+##    3865    3997 
 ## 
 ## lowest :  709 1021 1135 1330 1474, highest: 4167 4174 4238 4593 4990 
-## ------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
 ```
 
 
@@ -277,12 +290,12 @@ summary(lwt.i)
 
 ```
 ## 
-##  10 values imputed to 55.45
+##  10 values imputed to 55
 ```
 
 ```
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##    36.4    50.0    55.5    59.1    63.6   114.0
+##    36.4    50.0    55.0    59.0    63.6   114.0
 ```
 
 
@@ -295,18 +308,23 @@ object in R. To use the mean instead of the median, we just have to add the
 ## Visual and numerical summaries
 
 There are three useful commands that provide summary statistics for a list of
-variable. The first one, `summarize()`, can be seen as an equivalent to R's
+variables. They implement the [split-apply-combine strategy][7] in the spirit
+of R's built-in functions (unlike [plyr][8]).
+
+The first one, `summarize()`, can be seen as an equivalent to R's
 `aggregate()` command. Given a response variable and one or more
 classification factors, it applies a specific function to all data chunk,
 where each chunk is defined based on factor levels. The results are stored
 in a matrix, which can easily be coerced to a data frame (`as.data.frame()`
 or `Hmisc::matrix2dataFrame()`).
 
+*Remark:* Some of the results are shown via the `prn()` command.
+
 
 ```r
-f <- function(x, na.opts = TRUE) c(mean = mean(x, na.rm = na.opts), sd = sd(x, na.rm = na.opts))
+f <- function(x, na.opts = TRUE) c(mean = mean(x, na.rm = na.opts), sd = sd(x, 
+    na.rm = na.opts))
 out <- with(birthwt, summarize(bwt, race, f))
-prn(out, "Average baby weight by ethnicity")
 ```
 
 ```
@@ -359,20 +377,6 @@ with(birthwt, summarize(bwt, llist(race, smoke), f))
 ## 4 Other   Yes 2757 810.0
 ```
 
-```r
-with(birthwt, mApply(cbind(bwt, lwt), llist(race, smoke), colMeans))
-```
-
-```
-##       bwt   lwt
-## [1,] 3429 63.11
-## [2,] 2854 67.93
-## [3,] 2816 54.16
-## [4,] 2827 57.41
-## [5,] 2504 64.82
-## [6,] 2757 56.36
-```
-
 
 The second command, `bystats()`, (or `bystats2()` for two-way tabular
 output) allows to describe with any custom or built-in function one or
@@ -422,9 +426,21 @@ with(birthwt, bystats2(lwt, smoke, race))
 ```
 
 
-The third and last command is `summary.formula`()`, which can be abbreviated
+The third and last command is `summary.formula()`, which can be abbreviated
 as `summary()` as long as formula is used to describe variables
-relationships.
+relationships. There are three main configurations (`method=`):
+`"response"`, where a numerical variable is summarized for each level of
+one or more variables (numerical variables will be discretized in 4
+classes), as `summarize()` does; `"cross"`, to compute conditional and
+marginal means of several response variables described by at most 3
+explanatory variables (again, continuous predictors are represented as
+quartiles); `"reverse"`, to summarize univariate distribution of a set of
+variables for each level of a classification variable (which appears on the
+left-hand side of the formula). Variables are viewed as continuous as long
+as they have more than 10 distinct values, but this can be changed by
+setting, e.g., `continuous=5`. With `method="reverse"`, it is possible to
+add `overall=TRUE, test=TRUE` to add overall statistics and corresponding
+statistical tests of null effect between the groups.
 
 Here are some examples of use.
 
@@ -515,7 +531,8 @@ summary(low ~ race + ht, data = birthwt, fun = table)
 ```
 
 ```r
-out <- summary(low ~ race + age + ui, data = birthwt, method = "reverse", overall = TRUE)
+out <- summary(low ~ race + age + ui, data = birthwt, method = "reverse", overall = TRUE, 
+    test = TRUE)
 print(out, prmsd = TRUE, digits = 2)
 ```
 
@@ -524,20 +541,20 @@ print(out, prmsd = TRUE, digits = 2)
 ## 
 ## Descriptive Statistics by low
 ## 
-## +------------------+---+---------------------------+---------------------------+---------------------------+
-## |                  |N  |No                         |Yes                        |Combined                   |
-## |                  |   |(N=130)                    |(N=59)                     |(N=189)                    |
-## +------------------+---+---------------------------+---------------------------+---------------------------+
-## |race : White      |189|          56% (73)         |          39% (23)         |          51% (96)         |
-## +------------------+---+---------------------------+---------------------------+---------------------------+
-## |    Black         |   |          12% (15)         |          19% (11)         |          14% (26)         |
-## +------------------+---+---------------------------+---------------------------+---------------------------+
-## |    Other         |   |          32% (42)         |          42% (25)         |          35% (67)         |
-## +------------------+---+---------------------------+---------------------------+---------------------------+
-## |Mother age [years]|188|19.0/23.0/28.0  23.7+/- 5.6|19.5/22.0/25.0  22.3+/- 4.5|19.0/23.0/26.0  23.3+/- 5.3|
-## +------------------+---+---------------------------+---------------------------+---------------------------+
-## |ui : Yes          |189|         11% ( 14)         |         24% ( 14)         |         15% ( 28)         |
-## +------------------+---+---------------------------+---------------------------+---------------------------+
+## +------------------+---+----------------------------+----------------------------+----------------------------+----------------------------+
+## |                  |N  |No                          |Yes                         |Combined                    |  Test                      |
+## |                  |   |(N=130)                     |(N=59)                      |(N=189)                     |Statistic                   |
+## +------------------+---+----------------------------+----------------------------+----------------------------+----------------------------+
+## |race : White      |189|          56% (73)          |          39% (23)          |          51% (96)          | Chi-square=5 d.f.=2 P=0.082|
+## +------------------+---+----------------------------+----------------------------+----------------------------+----------------------------+
+## |    Black         |   |          12% (15)          |          19% (11)          |          14% (26)          |                            |
+## +------------------+---+----------------------------+----------------------------+----------------------------+----------------------------+
+## |    Other         |   |          32% (42)          |          42% (25)          |          35% (67)          |                            |
+## +------------------+---+----------------------------+----------------------------+----------------------------+----------------------------+
+## |Mother age [years]|188| 19.0/23.0/28.0  23.7+/- 5.6| 19.5/22.0/25.0  22.3+/- 4.5| 19.0/23.0/26.0  23.3+/- 5.3|   F=1.5 d.f.=1,186 P=0.22  |
+## +------------------+---+----------------------------+----------------------------+----------------------------+----------------------------+
+## |ui : Yes          |189|          11% ( 14)         |          24% ( 14)         |          15% ( 28)         |Chi-square=5.4 d.f.=1 P=0.02|
+## +------------------+---+----------------------------+----------------------------+----------------------------+----------------------------+
 ```
 
 
@@ -546,17 +563,259 @@ using `plot()` like in, e.g.,
 
 
 ```r
-plot(out)
+plot(out, which = "categorical")
 ```
 
-![plot of chunk plot.summary](figure/plot_summary1.png) ![plot of chunk plot.summary](figure/plot_summary2.png) 
+<img src="figure/plot_summary_reverse.png" title="plot of chunk plot_summary_reverse" alt="plot of chunk plot_summary_reverse" style="display: block; margin: auto;" />
 
 
-`Hmisc` provides replacement for some [lattice][7] commands, in particular
-`xYplot()` and `dotchart2()`.
+`Hmisc` provides replacement for some [lattice][9] commands, in particular
+`xYplot()` and `dotchart2()`, or `Dotplot()`. In fact, it is also its
+strength because we do not need to learn [ggplot2][10] to overcome base
+graphics limitations, and using `Hmisc` keep in line with lattice charts
+(and their multiple options).
+
+Let say we would like to display average birth weight plus or minus one
+standard error for each class of mother ethnicity. Assuming there is no
+missing variable we could define a simple function that returns means and
+associated lower/upper bounds.
+
+```r
+se <- function(x) sd(x)/sqrt(length(x))
+f <- function(x) c(mean = mean(x), lwr = mean(x) - se(x), upr = mean(x) + se(x))
+d <- with(birthwt, summarize(bwt, race, f))
+```
+
+```
+## 
+## Summary statistics (Mean +/- SE) by group   d
+## 
+##    race  bwt  lwr  upr
+## 3 White 3103 3028 3177
+## 1 Black 2720 2594 2845
+## 2 Other 2805 2717 2894
+```
+
+```r
+xYplot(Cbind(bwt, lwr, upr) ~ numericScale(race, label = "Ethnicity"), data = d, 
+    type = "b", keys = "lines", ylim = range(apply(d[, 3:4], 2, range)) + c(-1, 
+        1) * 100, scales = list(x = list(at = 1:3, labels = levels(d$race))))
+```
+
+
+An easier (also shorter) solution is to rely on `lattice` extra commands, like
+
+```r
+library(latticeExtra)
+segplot(race ~ lwr + upr, data = d, centers = bwt, horizontal = FALSE, draw.bands = FALSE, 
+    ylab = "Baby weight (g)")
+```
+
+<img src="figure/segplot.png" title="plot of chunk segplot" alt="plot of chunk segplot" style="display: block; margin: auto;" />
+
+although `xYplot()` is very handy when processing model predictions
+generated by `ols()` or `lrm()`, as we will discuss below.
+
+
+`Hmisc` provides automatic labelling of curves or levels of grouping factor,
+which are used as in standard lattice graphics (`groups=`), without the need
+to rely on the [directlabels][11] package.
+
+```r
+d <- with(birthwt, summarize(bwt, llist(race, smoke), f))
+xYplot(Cbind(bwt, lwr, upr) ~ numericScale(race), groups = smoke, data = d, 
+    type = "l", keys = "lines", method = "alt bars", ylim = c(2200, 3600), scales = list(x = list(at = 1:3, 
+        labels = levels(d$race))))
+```
+
+<img src="figure/directlabels.png" title="plot of chunk directlabels" alt="plot of chunk directlabels" style="display: block; margin: auto;" />
+
 
 
 ## Model fitting and diagnostic
+
+The [rms][2] package is used in combination with `Hmisc`, which takes care
+of data pre-processing and statistical summary. It is devoted to model
+fitting, including validation (`validate()`) and calibration (`calibrate()`)
+using bootstrap. It further includes utilities to refine general modeling
+strategies and to handle higher-order terms (polymonial or restricted cubic
+splines) or ordered catgeorical predictors, see online
+`help(rms.trans)`. The definitive guide to regression modeling using `rms` is
+
+> Harrell, F.E., Jr (2001). *Regression Modeling Strategies, With Applications
+> to Linear Models, Logistic Regression, and Survival Analysis*. Springer.
+
+The companion website is [BIOS 330: Regression Modeling Strategies][12].
+
+Instead of `lm()`, we will use `ols()` to perform linear regression, but the
+general formulation of the parametric model remains the same: a formula is
+used to describe variable relationships (the response variable is on the
+left-hand side, while predictors are on the right-hand side). A basic usage
+of this command is shown below. To reuse the model for predictions purpose,
+the linear predictor must be stored with model results (`x=TRUE`).
+
+```r
+library(rms)
+m <- ols(bwt ~ age + race + ftv, data = birthwt, x = TRUE)
+m
+```
+
+```
+## 
+## Linear Regression Model
+## 
+## ols(formula = bwt ~ age + race + ftv, data = birthwt, x = TRUE)
+## 
+## Frequencies of Missing Values Due to Each Variable
+##  bwt  age race  ftv 
+##    0    1    0    5 
+## 
+## 
+##                   Model Likelihood     Discrimination    
+##                      Ratio Test           Indexes        
+## Obs        183    LR chi2     10.37    R2       0.055    
+## sigma 725.0771    d.f.            4    R2 adj   0.034    
+## d.f.       178    Pr(> chi2) 0.0347    g      192.508    
+## 
+## Residuals
+## 
+## Baby weight [grams] 
+##        Min         1Q     Median         3Q        Max 
+## -2132.2374  -499.8035     0.9503   520.4314  1759.2352 
+## 
+##            Coef      S.E.     t     Pr(>|t|)
+## Intercept  2957.5528 261.1681 11.32 <0.0001 
+## age           5.7498  10.5102  0.55 0.5850  
+## race=Black -373.3901 163.1956 -2.29 0.0233  
+## race=Other -295.6800 120.0166 -2.46 0.0147  
+## ftv          14.4698  51.8045  0.28 0.7803
+```
+
+
+Note that, contrary to `lm()`, the `summary()` method (or more precisely,
+`summary.rms()`) does something else. With `ols()` it will print a summary
+of the effect of each factor. It requires, however, that the user create a
+`datadist` object to store values for the predictors entering the
+model, and that object must be available in the current namespace. So, the
+preceding example becomes: 
+
+
+```r
+d <- datadist(birthwt)
+options(datadist = "d")
+m <- ols(bwt ~ age + race + ftv, data = birthwt, x = TRUE)
+summary(m)
+```
+
+```
+##              Effects              Response : bwt 
+## 
+##  Factor             Low High Diff. Effect  S.E.   Lower 0.95 Upper 0.95
+##  age                19  26    7      40.25  73.57 -103.95    184.45    
+##  ftv                 0   1    1      14.47  51.80  -87.07    116.00    
+##  race - Black:White  1   2   NA    -373.39 163.20 -693.25    -53.53    
+##  race - Other:White  1   3   NA    -295.68 120.02 -530.91    -60.45
+```
+
+
+Effect size measures can also be displayed graphically using the
+corresponding `plot` method:
+
+```r
+plot(summary(m))
+```
+
+<img src="figure/plot_summary.png" title="plot of chunk plot_summary" alt="plot of chunk plot_summary" style="display: block; margin: auto;" />
+
+Note also that in the case of multiple regression it is possible to select
+baseline category and adjust the effect for a particular value of a
+continuous predictor, as in the example below.
+
+```r
+summary(m, race = "Other", age = median(birthwt$age))
+```
+
+```
+##              Effects              Response : bwt 
+## 
+##  Factor             Low High Diff. Effect S.E.   Lower 0.95 Upper 0.95
+##  age                19  26    7     40.25  73.57 -103.95    184.4     
+##  ftv                 0   1    1     14.47  51.80  -87.07    116.0     
+##  race - White:Other  3   1   NA    295.68 120.02   60.45    530.9     
+##  race - Black:Other  3   2   NA    -77.71 169.55 -410.02    254.6
+```
+
+
+A more conventional ANOVA table for the regression can be obtained using
+`anova()`.
+
+```r
+anova(m)
+```
+
+```
+##                 Analysis of Variance          Response: bwt 
+## 
+##  Factor     d.f. Partial SS MS      F    P     
+##  age          1    157346    157346 0.30 0.5850
+##  race         2   4529519   2264760 4.31 0.0149
+##  ftv          1     41017     41017 0.08 0.7803
+##  REGRESSION   4   5454889   1363722 2.59 0.0381
+##  ERROR      178  93581138    525737
+```
+
+
+Measures of influence are available with the `which.influence()` command,
+and it returns observations that are above a certain threshold with respect
+to their DFBETA (default, 0.2). The `vif()` command displays variance
+inflation factor, which can be used to gauge multicolinearity issue.
+
+```r
+which.influence(m)
+```
+
+```
+## $Intercept
+## [1] 117 130 131 133
+## 
+## $age
+## [1] 110 127 130 131 133 141
+## 
+## $race
+## [1] 106 110 131 133 134 138
+## 
+## $ftv
+## [1]  68 110 133
+```
+
+```r
+vif(m)
+```
+
+```
+##        age race=Black race=Other        ftv 
+##      1.092      1.130      1.132      1.056
+```
+
+
+Model predictions are carried out the R's way, using `fitted()`, or
+`rms::Predict`. The latter offers additional control over adjustment factor
+(like the [effects][13] package does), and does not require to create a data
+frame as in `predict()`. It also handles 95% confidence intervals smoothly.
+
+```r
+p <- Predict(m, age = seq(20, 35, by = 5), race, ftv = 1)
+xYplot(Cbind(yhat, lower, upper) ~ age | race, data = p, layout = c(3, 1), method = "filled bands", 
+    type = "l", col.fill = gray(0.95))
+```
+
+<img src="figure/predict.png" title="plot of chunk predict" alt="plot of chunk predict" style="display: block; margin: auto;" />
+
+
+Logistic regression is handled by the `lrm()` function, and it works almost
+in the same way, except that it provides more convenient output than R's
+`glm()`, especially in terms of adjusted odds-ratio, partial effects,
+confidence intervals, or likelihhod ratio test.
 
 [1]: http://cran.r-project.org/web/packages/Hmisc
 [2]: http://cran.r-project.org/web/packages/rms
@@ -564,172 +823,20 @@ plot(out)
 [4]: http://cran.r-project.org/doc/manuals/r-release/R-data.html
 [5]: http://biostat.mc.vanderbilt.edu/wiki/Main/Hmisc
 [6]: http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets
-[7]: http://cran.r-project.org/web/packages/lattice
+[7]: http://www.jstatsoft.org/v40/i01/
+[8]: http://plyr.had.co.nz/
+[9]: http://cran.r-project.org/web/packages/lattice
+[10]: http://ggplot2.org/
+[11]: http://cran.r-project.org/web/packages/directlabels
+[12]: http://biostat.mc.vanderbilt.edu/wiki/Main/CourseBios330
+[13]: http://cran.r-project.org/web/packages/effects
 
 
 <!---
-Ces étiquettes peuvent ensuite être associées automatiquement dans les
-tableaux, graphiques ou résumés produits par \texttt{Hmisc}. La commande
-\verb|describe| fournit une synthèse descriptive de l'ensemble des variables
-d'un \verb|data.frame| ou d'une liste de variables, à l'image d'un \og
-codebook\fg. 
-<<>>=
-@ 
 
 
-\subsection*{Statistiques descriptives}
-La commande \verb|summarize| fonctionne sur le même principe que
-\verb|aggregate| et permet de fournir pour une variable
-numérique des résumés stratifiés selon une ou plusieurs variables
-qualitatives. À la différence de \verb|aggregate|, il est possible de
-calculer plusieurs statistiques et de les stocker dans des colonnes
-différents d'un même tableau de résultats (\verb|aggregate| stocke en fait
-tous ses résultats dans une seule et même colonne, ce qui n'est pas gênant
-pour l'affichage mais ne facilite pas l'exploitation des résultats).
-<<>>=
-f <- function(x) c(mean=mean(x), sd=sd(x))
-with(birthwt, summarize(bwt, race, f))
-@ 
-
-La commande \verb|summary| (en fait, \verb|summary.formula|) peut s'utiliser
-avec une notation par formule décrivant les relations entre plusieurs
-variables. On distingue trois principales méthodes (\verb|method=|) :
-\verb|"response"|, où l'on résume une variable numérique selon les niveaux
-d'une ou plusieurs variables (dans le cas de variables numériques,
-\texttt{Hmisc} recodera automatiquement la variable en 4 classes
-équilibrées), \verb|"cross"| pour calculer moyennes conditionnelles et
-marginales d'une ou plusieurs variables réponse en fonction de variables
-qualitatives ou numériques (3 au maximum), et \verb|"reverse"| pour résumer
-de manière univariée un ensemble de variables numériques (trois quartiles)
-ou qualitatives (effectif et proportion) selon les niveaux d'un facteur. La
-position des variables par rapport à l'opérateur de liaison \verb|~| de la
-formule joue un rôle particulièrement important pour déterminer le type de
-résumé à réaliser selon la méthode sélectionnée. Pour les méthodes
-\verb|"response"| et \verb|"reverse"|, on peut coupler la commande
-\verb|plot| directement avec le résultat renvoyé par \verb|summary| pour
-avoir une représentation graphique des résultats. On peut également fournir
-une formule et indiquer à \R quelle commande appliquer pour résumer la
-structure de données. Par exemple, dans le cas \verb|low ~ race + ht|,
-l'option \verb|fun=table| permettra de construire automatiquement les deux
-tableaux de contingence correspondant au croisement des variables
-\texttt{low} avec \texttt{race} et \texttt{low} avec \texttt{ht}.
-
-Voici quelques illustrations :
-<<>>=
-library(Hmisc)
-summary(bwt ~ race + ht + lwt, data=birthwt)
-summary(cbind(lwt, age) ~ race + bwt, data=birthwt, method="cross")
-summary(low ~ race + age + ui, data=birthwt, method="reverse", overall=TRUE)
-summary(low ~ race + ht, data=birthwt, fun=table)
-plot(summary(bwt ~ race + ht + lwt, data=birthwt))
-@ 
-
-Lorsque l'on utilise \verb|method="reverse"|, il est possible d'ajouter
-l'option \verb|test=TRUE| pour obtenir automatiquement un test de
-comparaison de moyenne ou de fréquence entre les groupes définis par la
-variable de stratification. Il est également possible d'exporter
-automatiquement les tableaux produits au format \LaTeX ou PDF.
-
-\subsection*{Commandes graphiques}
-Le package \texttt{Hmisc} repose pour l'essentiel sur les graphiques
-\texttt{lattice}, mais il fournit des commandes \og plus intégrées\fg. Parmi
-les commandes graphiques fournies par \texttt{Hmisc}, on distingue les
-diagrammes en points (\verb|Dotplot| et \verb|dotchart2|), les diagrammes en
-boîtes à moustaches (\verb|panel.bpplot| à utiliser avec la commande usuelle
-\verb|bwplot|) et les diagrammes de dispersion (\verb|xyplot|). On se
-contentera de présenter un exemple pour ce dernier cas.
-
-<<>>=
-f <- function(x) c(mean(x), mean(x) + c(-1, 1) * sd(x)/sqrt(length(x)))
-bwtmeans <- with(birthwt, summarize(bwt, llist(race, smoke), f))
-names(bwtmeans)[4:5] <- c("lwr", "upr")
-bwtmeans
-xYplot(Cbind(bwt, lwr, upr) ~ numericScale(race, label="Ethnicité de la mère") | smoke,
-       data=bwtmeans, type="b", ylim=c(2200, 3600),
-       scales=list(x=list(at=1:3, labels=levels(birthwt$race))))
-@
-On notera que \verb|Cbind| prend un \og c\fg\ majuscule, pour différencier
-cette commande de la commande de base, et que si elle existe l'étiquette de
-la variable remplace automatiquement le nom de la variable (c'est le cas ici
-pour la variable \texttt{bwt}). Il est également possible de libeller
-automatiquement les diféfrentes courbes, segments ou points définis par une
-variable de conditionnement à l'aide de l'option \verb|keys=|, comme dans
-l'exemple suivant.
-<<eval=FALSE>>=
-xYplot(Cbind(bwt, lwr, upr) ~ numericScale(race), groups= smoke,
-       data=bwtmeans, type="l", keys="lines")
-@ 
 
 
-\section*{Les commandes essentielles de rms}
-Pour utiliser les commandes du package \texttt{rms}, on chargera au
-préalable le package à l'aide de la commande \verb|library|. Notons que ce
-package charge automatiquement le package \texttt{Hmisc}.
-<<>>=
-library(rms)
-@ 
-
-Pour la régression linéaire, il s'agit de la commande \verb|ols|. Le
-principe d'utilisation reste le même que pour la commande \verb|lm| : on
-spécifie à l'aide d'une formule le rôle de chaque variable (variable réponse
-\verb|~| variables explicatives) et le \verb|data.frame| dans lequel
-chercher les données. Dans son usage le plus simple, on se contente
-d'afficher les résultats renvoyés par \verb|ols| avec la commande
-\verb|print| ou en tapant simplement le nom de la variable auxiliaire dans
-laquelle on a stocké les résultats du modèle. Pour obtenir des informations
-additionnelles, en particulier concernant les effets marginaux, les résidus
-du modèle, et profiter de fonctionnalités graphiques étendues, il est
-nécessaire d'utiliser la commande \verb|datadist| pour stocker les
-prédicteurs du modèle dans une structure à part. On disposera alors de 
-commandes telles que \verb|summary| ou \verb|plot|.
-
-\paragraph{Exemple.} Modélisation du poids des bébés en fonction de
-différents indicateurs de risque chez la mère.
-<<>>=
-m <- ols(bwt ~ age + lwt + race + ftv, data=birthwt, x=TRUE)
-m
-@ 
-
-Pour la régression logistique (simple, multiple ou ordinale), on utilise la
-commande \verb|lrm|. Cette commande choisit automatiquement le modèle selon
-le nombre de niveaus de la variable réponse : dans le cas où il y en a plus
-de deux, un modèle à odds proportionnels est utilisé.
-
-% clean-up
-<<echo=FALSE>>=
-rm(list=ls())
-data(birthwt, package="MASS")
-birthwt <- within(birthwt, {
-  low <- factor(low, labels=c("No","Yes"))
-  race <- factor(race, labels=c("White","Black","Other"))
-  smoke <- factor(smoke, labels=c("No","Yes"))
-  ui <- factor(ui, labels=c("No","Yes"))
-  ht <- factor(ht, labels=c("No","Yes"))
-})
-@
-
-\paragraph{Exemple.} Modélisation du poids des bébés (0/1) en fonction des
-mêmes variables explicatives.
-<<eval=FALSE>>=
-ddist <- datadist(birthwt)
-options(datadist='ddist')             
-m <- lrm(low ~ age + lwt + race + ftv, data=birthwt)
-print(m)
-summary(m)
-m2 <- update(m, . ~ . - age - ftv)
-lrtest(m2, m)
-anova(m2)
-pm2 <- Predict(m2, lwt=seq(80, 250, by=10), race)
-print(xYplot(Cbind(yhat,lower,upper) ~ lwt | race, data=pm2,
-             method="filled bands", type="l", col.fill=gray(.95)))
-@
-
-\centerline{\includegraphics[width=0.5\textwidth]{lwb-fig14}}
-\vskip1.5em
-
-Enfin, pour la régression de Cox, il s'agit de la commande \verb|cph|. La
-représentation des données de survie passe toujours par une étape préalable
-de conversion avec la commande \verb|Surv|.
 
 
 \section*{Pour aller plus loin}
