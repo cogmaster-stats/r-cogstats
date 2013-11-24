@@ -1,4 +1,4 @@
-<!--- Time-stamp: <2013-11-24 20:32:38 chl> -->
+<!--- Time-stamp: <2013-11-24 22:42:29 chl> -->
 
 <!--- To generate HTML output:
 library(knitr)
@@ -77,7 +77,15 @@ describes the relationship between the outcome, `y`, and one
 predictor, `x`, according to the levels of a categorical variable `g`
 and a continuous variable `z` summarized as *shingles*.
 
-Let's start with a scatterplot for a multiway data set.
+Let's start by drawing a basic scatterplot for a multiway data set. Our data
+set is composed of four variables that are simulated very basically as shown
+below. Variables `x` and `z` are simply drawn from an uniform distribution,
+while `g` is a random sample of `a` and `b`. Then, `z` is discretized using
+the `equal.count()` function, which basically amounts to dividing z-values
+in distinct classes. Contrary to `cut()`, it allows partial overlapping
+between those classes, meaning that an observation belong to several classes
+at once. This is the basis of `lattice`'s shingles, and it permit the
+cross-classification of several variables, including continuous ones.
 
 ```r
 set.seed(88)
@@ -97,21 +105,25 @@ xyplot(y ~ x | g + zc, data = d, type = c("p", "g", "smooth"), col.line = "peach
 <img src="figure/fig1.png" title="plot of chunk fig1" alt="plot of chunk fig1" style="display: block; margin: auto;" />
 
 
-It is worth noting that local smoother and regression fit are applied
-for each panel (in fact, they evaluate `x` conditional to `g` and `zc`
-from the `data=` argument, which might not be always the case with
-other constructions). All axes are scaled in a similar manner, and 
-horizontal and vertical axis alternate from bottom to top, or left to
-right, respectively.
+It is worth noting that a scatterplot smoother (lowess) is applied to all 3
+panels defined by the relation `x` conditional to `g` and `zc`. All axes are
+scaled in a similar manner, and horizontal and vertical axis alternate from
+bottom to top, or left to right, respectively. Labels for the x- and y-axes
+are controlled as in base graphics, using `xlab=` and `ylab=`, and it is
+also possible to directly use `par` parameters like `lwd=` (line width). The
+`col.line=` option is specific to the `panel.smooth()` function, which is
+used internally as soon as we add a `type="smooth"` option. The formula used
+above follows R's convention, except that `*` which denotes interaction
+between variables is meaningless (in most cases).
 
-Some important parameters of a `lattice` graphic are given below:
+Other important parameters of a `lattice` display are given below:
 
 - `aspect` determine the ratio of height to width of the graphical
-region. It can be a (positive) number, or one of the available options:
-`xy` means that the *45° banking rule* [@cleveland88] is used to
-determine x and y scale; `iso` means that the number of units per cm
-is the same for both axes which implies that relation between physical
-distance on the display and in the data scale is respected.
+  region. It can be a (positive) number, or one of the available options:
+  `xy` means that the *45° banking rule* [@cleveland88] is used to
+  determine x and y scale; `iso` means that the number of units per cm
+  is the same for both axes which implies that relation between physical
+  distance on the display and in the data scale is respected.
 - `layout` describes the arrangement of panel as columns by rows;
   e.g., `layout=c(2, 3)` means to display the panel in a grid composed
   of two columns and three rows. 
@@ -122,6 +134,114 @@ distance on the display and in the data scale is respected.
   default control.
 
 
+As an example, consider the following variations around the scatterplot.
+
+
+
+```r
+library(hexbin)
+n <- 1000
+d <- transform(data.frame(x = runif(n, 0, 10)), y = 0.7 * x + rnorm(n))
+d <- d[sample(1:n, n, replace = TRUE), ]
+
+p <- list()
+p[[1]] <- xyplot(y ~ x, data = d, col = "cornflowerblue")
+p[[2]] <- update(p[[1]], pch = 19, col = rgb(0, 0, 0.8, 0.25), cex = 0.6, sub = "col=rgb(0, 0, .8, .25)")
+p[[3]] <- update(p[[2]], panel = panel.hexbinplot, sub = "panel=panel.hexbinplot")
+p[[4]] <- update(p[[1]], jitter.data = TRUE, pch = "+", type = c("p", "g", "smooth"), 
+    col.line = "grey20", lwd = 2, sub = "jitter.data=TRUE")
+do.call(grid.arrange, p)  ## require to load the gridExtra package
+```
+
+<img src="figure/fig2.png" title="plot of chunk fig2" alt="plot of chunk fig2" style="display: block; margin: auto;" />
+
+
+In this simulated dataset, we have introduced around one third of replicates
+to show how easy it is to cope with this situation using transparency
+(`alpha=` or `col=`), hexagonal binning from the [hexbin][7] package, or
+jittering (`jitter.data=`). What is important here is to realize that the
+above customizations do not use anything else than specific arguments to
+`xyplot()`. That is to say we often won't need to write complex R code to
+get the desired effect. However, the updating method used in the above code
+alleviates the need to write the same command several times when we just
+want to change a given parameter or the overall layout.
+
+But, look at the complete definition of the `xyplot()` function:
+
+     xyplot(x,
+            data,
+            allow.multiple = is.null(groups) || outer,
+            outer = !is.null(groups),
+            auto.key = FALSE,
+            aspect = "fill",
+            panel = lattice.getOption("panel.xyplot"),
+            prepanel = NULL,
+            scales = list(),
+            strip = TRUE,
+            groups = NULL,
+            xlab,
+            xlim,
+            ylab,
+            ylim,
+            drop.unused.levels = lattice.getOption("drop.unused.levels"),
+            ...,
+            lattice.options = NULL,
+            default.scales,
+            default.prepanel = lattice.getOption("prepanel.default.xyplot"),
+            subscripts = !is.null(groups),
+            subset = TRUE)
+     
+Some formal parameters are `NULL` by default (e.g., `auto.key=`, `scales=`),
+but more interestingly there is the *special variable length argument*
+(`...`) that appears among the various options. It is important to
+understand that it is used to pass arguments to the `panel()` function,
+other than default options. For example, to change the color a smoothing
+line invoked with `type="smooth"`, we would add `col.line=` to the main
+`xyplot()` call. E.g.,
+
+
+```r
+xyplot(y ~ x, type = c("p", "smooth"), col.line = "red", lwd = 2)
+```
+
+will draw a local smoother in red where line width is two times the
+default line width.
+
+## Customizing default plots
+
+Sometimes, it may be useful to add contextual information to an existing
+graphic. Consider the following example where pre and post measurements on
+weight have been made for three groups of young female anorexia patients:
+
+```r
+data(anorexia, package = "MASS")
+p <- xyplot(Postwt ~ Prewt | Treat, data = anorexia, layout = c(3, 1), aspect = "iso")
+p
+```
+
+<img src="figure/fig4.png" title="plot of chunk fig4" alt="plot of chunk fig4" style="display: block; margin: auto;" />
+
+
+Since measurements are expressed on the same scale, we added the
+`aspect="iso"` option, which ensures that teh graphical display will reflect
+the same variation on the x- and y-axis.
+
+A scatterplot is appropriate when individual measurements are paired such
+that weight increase will be reflected by a cloud of points located above
+the identity line. However, this one is lacking which makes it difficult to
+get a reliable sense of the tendency in this plot. To add a 45° line, we
+could simply update the above plot and add another panel like this:
+
+```r
+p <- update(p, abline = list(a = 0, b = 1, col = "lightgrey"))
+print(p)
+```
+
+<img src="figure/fig5.png" title="plot of chunk fig5" alt="plot of chunk fig5" style="display: block; margin: auto;" />
+
+
+
+
 
 [1]: http://cran.r-project.org/web/packages/lattice/index.html
 [2]: http://cran.r-project.org/web/packages/latticeExtra/index.html
@@ -129,3 +249,4 @@ distance on the display and in the data scale is respected.
 [4]: http://lmdvr.r-forge.r-project.org/
 [5]: http://stat.bell-labs.com/project/trellis/wwww.html
 [6]: https://www.stat.auckland.ac.nz/~paul/RGraphics/rgraphics.html
+[7]: http://cran.r-project.org/web/packages/hexbin/index.html
