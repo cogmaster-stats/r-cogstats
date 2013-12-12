@@ -1,4 +1,4 @@
-<!--- Time-stamp: <2013-11-24 22:42:29 chl> -->
+<!--- Time-stamp: <2013-11-27 11:56:25 chl> -->
 
 <!--- To generate HTML output:
 library(knitr)
@@ -209,7 +209,7 @@ line invoked with `type="smooth"`, we would add `col.line=` to the main
 ```{r fig3, eval=FALSE}
 xyplot(y ~ x, type=c("p", "smooth"), col.line="red", lwd=2)
 ```
-will draw a local smoother in red where line width is two times the
+will draw a local smoother in red where line width (`lwd=`) is two times the
 default line width.
 
 ## Customizing default plots
@@ -238,7 +238,11 @@ p <- update(p, abline=list(a=0, b=1, col="lightgrey"))
 print(p)
 ```
 
-
+Now, it is evident that patients under family treatment (FT) have seen their
+weight increased more consistently and by a larger amount,compared to other
+patients. There is a `print` method for lattice graphic. It is not necessary
+to use it to display a plot on the active display, but it comes with
+additional parameters
 
 
 [1]: http://cran.r-project.org/web/packages/lattice/index.html
