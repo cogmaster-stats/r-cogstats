@@ -1,0 +1,33 @@
+Using a knitr or Pweave custom report, you are asked to answer the following
+questions:
+
+1. (a) Give a numerical summary of sample size (frequencies and counts) and
+   baby weight (mean, standard deviation and range) for each level of parity
+   (0, 1, 2, 3+ siblings). Results should be printed in one or two
+   Tables. (b) Use box-and-whiskers charts or density plots to show the
+   distribution of individual weights.
+
+2. (a) Does a one-way ANOVA suggest that the weights of babies are related
+   to their parity? (b) What part of the variance is explained by this
+   model? (c) Are usual assumptions met for such a model?
+
+3. The reasearcher decides to aggregate the last two categories (2 and 3+
+   siblings). Does that change conclusions raised in (2)?
+
+4. Considering the same three levels for parity, is there any evidence of a
+   linear trend between baby weights and number of siblings? Provide an
+   effect-size measure and a p-value for the corresponding test.
+
+5. (a) Compute pairwise Pearson correlation between baby weight, height, and
+   head circumference, and report associated two-tailed significance tests,
+   with and without Bonferroni correction. (b) Display all pairwise
+   relationships in a scatterplot matrix or in separate scatter displays.
+
+6. Using regression analysis, can we say that body length is a useful
+   predictor for weight at 1 month of age? (a) Display the relationship
+   between the two variables in a scatterplot, together with a loess
+   smoother. Is there any evidence of local non-linearities in the cloud of
+   points? (b) Provide a Table of regression coefficients, and (c)
+   associated 95% confidence intervals for the slope parameter. (d) What is
+   the R-squared value for this model? (e) What is the expected weight (in
+   grams), with 95% confidence interval, for a baby whose height is 56.8 cm.
