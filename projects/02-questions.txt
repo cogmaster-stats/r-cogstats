@@ -1,0 +1,32 @@
+Using a knitr or Pweave custom report, you are asked to answer the following
+questions:
+
+1. (a) Give a numerical summary of sample size (frequencies and counts) and
+   age at diagnosis (mean, standard deviation and range) for each genotype
+   (recoded as a categorical variable with appropriate levels). Results
+   should be printed in one or two Tables. (b) Use box-and-whiskers charts
+   or density plots to show the distribution of individual weights.
+
+2. Carry out a one-way ANOVA to test the null hypothesis that the age at
+   breast cancer diagnosis does not depend on genotype. (a) Formulate your
+   conclusion in plain English, and (b) report the percentage of explained
+   variance.
+
+3. Assuming equality of variances, the researchers reported the following
+   95% confidence intervals (CI) for the three group means: 1.6/1.6
+   [58.1;71.1], 1.6/0.7 [59.9;68.9], 0.7/0.7 [44.3;56.5]. Compute the same
+   CIs without using a pooled estimate of the variance.
+
+4. Compute all pairwise differences between group means, with their 95% CIs
+   and p-values obtained from a parametric test for the observed
+   difference. Does age at diagnosis differ between patients homozygous for
+   the 1.6 allele and patients heterozygous?
+
+5. (a) Let suppose there are some reasons to discard patients whose ID are:
+   5, 6, 12, 13, 20, 28, 36, 39, 44, 51. What is the relative frequency of
+   the genotype group they belong to? (b) Does that change the results of
+   the ANOVA in (2)?
+
+6. Compare results in (1) with those obtained from a Kruskal-Wallis ANOVA
+   (kruskal.test() in R, or scipy.stats.mstats.kruskalwallis() in Python),
+   which considers ranks instead of raw values for each observation.

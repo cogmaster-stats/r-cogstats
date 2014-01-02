@@ -1,0 +1,49 @@
+## Research question
+
+The human estrogen receptor gene contains a two-allele restriction fragment
+length polymorphism. Bands at 1.6 kb and/or 0.7 kb identify the genotype for
+these alleles, and patients can be homozygous for the 1.6 kb (i.e., have two
+copies of the same allele) or 0.7 kb pattern allele, or heterozygous (i.e.,
+have one copy of each allele). Some authors studied the relationship between
+this genotype and age of diagnosis among 59 breast cancer patients.
+
+The main questions are:
+
+1. Derive 95% confidence intervals for mean age at breast cancer diagnosis
+   for each genotype.
+2. Check whether the age at diagnosis does indeed vary with genotype.
+
+
+## Loading data in R or Python
+
+Individual data are available in the file 02-estrogen.txt. Instructions to
+load this data set in R are given below. Note that genotype is coded as
+follows: 1 = 1.6/1.6, 2 = 1.6/0.7, and 3 = 0.7/0.7.
+
+> e <- read.table("02-estrogen.txt", header=TRUE)
+> names(e)
+[1] "id"       "age"      "genotype"
+> str(e)
+'data.frame':	59 obs. of  3 variables:
+ $ id      : int  1 2 3 4 5 6 7 8 9 10 ...
+ $ age     : int  43 47 55 57 61 63 63 69 70 72 ...
+ $ genotype: int  1 1 1 1 1 1 1 1 1 1 ...
+
+Using Python, with a working installation of Pandas, you can use the
+following instructions:
+
+>>> import pandas as pd
+>>> e = pd.read_csv('02-estrogen.txt', sep=' ')
+>>> e.head()
+   id  age  genotype
+0   1   43         1
+1   2   47         1
+2   3   55         1
+3   4   57         1
+4   5   61         1
+
+
+## Reference
+
+WD Dupont, Statistical Modeling for Biomedical Researchers, Cambridge
+University Press, 2009 (2nd ed.), p. 327.
