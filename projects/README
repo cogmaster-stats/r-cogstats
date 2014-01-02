@@ -1,6 +1,8 @@
-This repository contains data set with their description and a list of
+This repository contains data sets with their description and a list of
 questions to answer using R or Python. 
 
 1. 01-weights.{sav,csv}: Study of the relationships between parity and
    anthropometric characteristics and weights of babies one month after
    birth. 
+2. 02-estrogen.txt: Effect of estrogen receptor genotype on age at diagnosis
+   among breast cancer patients.

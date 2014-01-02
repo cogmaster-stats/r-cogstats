@@ -20,7 +20,7 @@ Individual data are available in the file 01-weights.sav. Instructions to
 load this data set in R are given below.
 
 > library(foreign)
-> w <- read.spss("~/Documents/Tutors/cesam-r/tex/data/weights.sav", to.data.frame=TRUE)
+> w <- read.spss("01-weights.sav", to.data.frame=TRUE)
 > names(w)
 [1] "ID"       "WEIGHT"   "LENGTH"   "HEADC"    "GENDER"   "EDUCATIO" "PARITY"
 > str(w)
