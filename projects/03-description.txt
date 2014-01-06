@@ -1,0 +1,49 @@
+## Research question
+
+In this experiment, researchers were interested in the relationship between
+subjects' heart rate after stepping exercise, based on differences in
+stepping frequency and step height.
+
+
+## Loading data in R or Python
+
+Individual data are available in the file 03-stepping.dat. Instructions to
+load this data set in R are given below. Block is a blocking variable
+(subject and experimenter block ID), but it will not be considered
+here. Variables labels are as follows:
+
+- Height: 0 = low (5.7in), 1 = high (11.5in)
+- Frequency: 0 = slow, 1 = medium, 2 = fast/high
+
+Resting heart rate and heart rate after exercise are measured in beats per
+minute.
+
+> s <- read.table("03-stepping.dat", header=TRUE)
+> names(s)
+[1] "Order"     "Block"     "Height"    "Frequency" "RestHR"    "HR"
+> str(s)
+'data.frame':	30 obs. of  6 variables:
+ $ Order    : int  16 18 19 21 25 17 20 22 23 27 ...
+ $ Block    : int  2 2 2 2 2 4 4 4 4 4 ...
+ $ Height   : int  0 0 1 1 0 1 1 0 1 0 ...
+ $ Frequency: int  0 1 2 0 2 1 0 0 2 2 ...
+ $ RestHR   : int  60 63 69 69 69 96 87 90 93 87 ...
+ $ HR       : int  75 84 135 108 93 141 120 99 153 129 ...
+
+Using Python, with a working installation of Pandas, you can use the
+following instructions:
+
+>>> import pandas as pd
+>>> s = pd.read_csv('03-stepping.dat', sep='\t')
+>>> s.head()
+    Order  Block  Height  Frequency  RestHR   HR
+16      2      0       0        NaN      60   75
+18      2      0       1        NaN      63   84
+19      2      1       2        NaN      69  135
+21      2      1       0        NaN      69  108
+25      2      0       2        NaN      69   93
+
+
+## Reference
+
+Data and Story Library, http://lib.stat.cmu.edu/DASL/Stories/SteppingandHeartRates.html.

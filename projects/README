@@ -6,3 +6,5 @@ questions to answer using R or Python.
    birth. 
 2. 02-estrogen.txt: Effect of estrogen receptor genotype on age at diagnosis
    among breast cancer patients.
+3. 03-stepping.dat: Study on subjects' heart rate and the frequency of
+   stepping up and down on steps of various heights.
