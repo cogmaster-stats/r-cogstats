@@ -5,7 +5,7 @@ questions:
    age at diagnosis (mean, standard deviation and range) for each genotype
    (recoded as a categorical variable with appropriate levels). Results
    should be printed in one or two Tables. (b) Use box-and-whiskers charts
-   or density plots to show the distribution of individual weights.
+   or density plots to show the distribution of individual ages.
 
 2. Carry out a one-way ANOVA to test the null hypothesis that the age at
    breast cancer diagnosis does not depend on genotype. (a) Formulate your
