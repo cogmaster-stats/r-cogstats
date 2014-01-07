@@ -1,0 +1,28 @@
+Instructions for submitting projects
+
+1. If you want to work with one or two colleagues, prepare a list with
+   students' names (3 students max.); otherwise skip to step 2.
+
+2. Pick one project, and relevant files on GitHub (or directly from the
+   course website). For each project, there is a brief description of the
+   data set and how to load data in R or Python, and a list of questions
+   specific to that data set. 
+
+3. Send an email to ch[dot]lalanne[at]gmail[dot]com with (a) your name, and
+   the list of your coworkers if you're not alone, (b) the project you
+   choose, and (c) the software you will be using.
+
+4. Work on the project and try to address all questions using Python or R,
+   but not both languages. Write your answer using one of the custom
+   template (R Markdown or Pweave) that are available on GitHub. We don't
+   need the output, just the *.Rmd or *.Pnw file. However, you will have to
+   test your final report in order to ensure that results (Tables and
+   Figures) are correctly printed in the HTML output file.
+
+5. Submit your work by email to ch[dot]lalanne[at]gmail[dot]com before the
+   deadline. 
+
+
+In any case, you will be assessed on the quality of your report, the
+accuracy of the results and of your responses. We expect correct and
+reproducible R or Python code, nothing more.
