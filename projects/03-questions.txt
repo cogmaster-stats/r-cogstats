@@ -24,3 +24,12 @@ questions:
    heart rate by considering the {slow + medium} (both combined)
    vs. fast/high levels Frequency of stepping, and report the results (t- or
    F-test with associated p-value and 95% confidence inetrvals).
+
+6. (a) Write down the results obtained from linear regression model with
+   heart rate (HR) as the response variable, and Frequency, Height, and
+   baseline heart rate (RestHR) as explantory variable, in terms of: overall
+   F-test and adjusted R-squared value for the whole model, estimates of
+   slopes for the three explanatory variables and associated significance
+   tests. (b) Compare those results with a two-way ANOVA similar to that
+   fitted in (4) but without the interaction term: Do you reach similar
+   conclusion about the main effects for the studied factors?

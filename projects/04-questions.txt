@@ -1,0 +1,30 @@
+Using a knitr or Pweave custom report, you are asked to answer the following
+questions:
+
+1. (a) Give a numerical summary of FEV1 (mean, standard deviation and range)
+   for each smoking category (recoded as a categorical variable with
+   appropriate levels), and for all subjects (grand mean and overall
+   standard deviation). Results should be printed in one or two Tables. (b)
+   Use box-and-whiskers charts or density plots to show the distribution of
+   individual values.
+
+2. Carry out a one-way ANOVA to test the null hypothesis that the age at
+   breast cancer diagnosis does not depend on genotype. (a) Formulate your
+   conclusion in plain English, and (b) report the percentage of explained
+   variance.
+
+3. (a) Use post-hoc Tukey HSD tests to compare all pairs of means among the
+   four groups of smokers. Summarize point estimates and 95% confidence
+   intervals in a Table or graphical display, and indicate which pairs of
+   means are found to be significantly different. (b) Compare those results
+   with results from all pairwise comparisons for mean FEV1 using the
+   Bonferroni method.
+
+4. Is there any evidence for a linear or quadratic trend for mean FEV1 when
+   considering smoking status as ordered factor levels: 1 < 2 < 3 < 4?
+
+5. (a) Compare the preceding results with the conclusion that would be
+   reached by using a regression approach where one considers smoking status
+   as a numerical variable, as well as its square, i.e., using a formula
+   like FEV1 ~ smoking + I(smoking)^2. (b) What could explain the
+   difference, if any?

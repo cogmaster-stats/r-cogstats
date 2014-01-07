@@ -4,6 +4,14 @@ In this experiment, researchers were interested in the relationship between
 subjects' heart rate after stepping exercise, based on differences in
 stepping frequency and step height.
 
+The main questions are:
+
+1. Does Height and Frequency impact on increase in heart rate?
+2. Are these two factors interacting together?
+3. Is there specifically a difference between high frequency of stepping
+   versus low or intermediate frequencies on the mean increase in heart
+   rate? 
+
 
 ## Loading data in R or Python
 

@@ -1,0 +1,57 @@
+## Research question
+
+An investigator wishes to study lung function in relation to smoking
+behavior. People are classified into four categories: nonsmokers (category
+1), former smokers who stopped smoking more than two years ago, called early
+smokers (category 2), former smokers who stopped smoking within the past two
+years, called recent smokers (category 3), and current smokers (category
+4). The lung function of each person is measured by the volume of air (in
+liters) that can be forcibly expired in the first second of exhalation. It
+is referred to as FEV1.
+
+The main questions are:
+
+1. Does smoking status affect mean FEV1?
+2. Can we distinguish nonsmokers from early early smokers based on the
+   available measures?
+3. Is there any evidence of a polynomial trend between FEV1 and smokers
+   category when considering that smoking status can be graded from
+   nonsmokers to current smokers?
+
+
+## Loading data in R or Python
+
+Individual data are available in the file 04-fev.dat. Instructions to load
+this data set in R are given below. Note that current smoking status, which
+appears in the first column in the data file, is coded as integer values
+following the description given in the preceding section.
+
+> f <- read.table("04-fev.dat", header=FALSE)
+> names(f)
+[1] "V1" "V2"
+> str(f)
+'data.frame':	24 obs. of  2 variables:
+ $ V1: int  1 1 1 1 1 1 2 2 2 2 ...
+ $ V2: num  4.41 4.96 3.5 3.66 4.68 4.11 3.69 3.9 3.82 4.08 ...
+
+Note that there are no variable names, so it might be convenient to add some
+relevant names.
+
+Using Python, with a working installation of Pandas, you can use the
+following instructions:
+
+>>> import pandas as pd
+>>> f = pd.read_table("04-fev.dat", header=None, sep=' ')
+>>> f.head()
+   0     1
+0  1  4.41
+1  1  4.96
+2  1  3.50
+3  1  3.66
+4  1  4.68
+
+
+## Reference
+
+RM Mickey, OJ Dunn and VA Clark, Analysis of Variance and Regression, Wiley,
+2004 (3rd ed.), p. 34.
