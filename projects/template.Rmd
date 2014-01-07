@@ -1,0 +1,78 @@
+Project xxx: Short title goes here
+==============================================================================
+
+<big>
+**Author**  
+**Date**
+</big>
+
+```{r setup, include=FALSE}
+opts_knit$set(progress=FALSE, verbose=FALSE, width=90)
+opts_chunk$set(message=FALSE, tidy=TRUE, highlight=TRUE, fig.align="center")
+```
+
+A summary of Markdown syntax is available when editing R Markdown documents
+under RStudio, or on this [Markdown Cheatsheet](http://goo.gl/6ThPR7).
+
+To compile this document, you can use the following commands in R:
+
+    library(knitr)
+    library(markdown)
+    knit("template.Rmd", quiet=TRUE)
+    markdownToHTML("template.md", "template.html", option=c("highlight_code", "toc"), title="Simple R Markdown template")
+    browseURL("template.html")
+
+This only requires a working installation of the `knitr` and `markdown` packages.
+
+## Importing data
+
+The following R code is based on the **first project**. Set the `WD`
+variable to point to your *working directory* (assuming the data file can be
+found there).
+
+Without further option, the following code chunk will be printed and executed.
+
+```{r load}
+library(foreign)
+WD <- "."
+w <- read.spss(paste(WD, "01-weights.sav", sep="/"), to.data.frame=TRUE)
+names(w)
+str(w)
+```
+
+The following chunk will, however, not be displayed, but expressions will be
+evaluated and results available for later use.
+
+```{r mask, echo=FALSE}
+library(xtable)  ## useful for displaying HTML table
+```
+
+## Overview
+
+Here is a brief sketch of the data, number and type of variables, number of
+observations, etc.
+
+Tables can be created using base R commands, like `table()` or `xtabs()`,
+and the [xtable](http://cran.r-project.org/web/packages/xtable) package. We
+just have to set the option `result='asis'`, and ask for HTML output when
+calling `print.xtable()`, as illustrated in the next chunk.
+
+```{r xtable, results='asis'}
+print(xtable(head(iris)), type="html", include.rownames=FALSE)
+```
+
+The `xtable` package will also work with tables produced by `summary()` for
+ANOVA and regression models.
+
+Figures are displayed easily too, and there are various custom settings that
+can be used, see the `knitr`
+[Chunk options and package options](http://yihui.name/knitr/options). 
+
+```{r xyplot, fig.width=6, fig.height=6}
+xyplot(Sepal.Length ~ Sepal.Width, data=iris, groups=Species, type=c("p", "g"))
+```
+
+Finally, external figures can be included using standard Markdown syntax:
+`![alt label](filename)`.
+
+![rstudio](./ens.jpg)

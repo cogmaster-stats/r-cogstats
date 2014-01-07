@@ -1,0 +1,97 @@
+Project xxx: Short title goes here
+==============================================================
+
+:Author: Author
+:Date: Today
+
+A summary of reStructuredText (reST) syntax can be found on the
+`docutils <http://docutils.sourceforge.net/rst.html>`_ website (to install
+``docutils``, just type ``pip install -U docutils`` or ``easy_install -U
+docutils`` in a Python shell). A comparison of Markdown and reST syntax can
+be found on `Pandoc Markdown and ReST Compared <http://goo.gl/NS2kUu>`_. The
+syntax is close to R Markdown (in fact, more to that of Sweave), except that
+code chinks are delimited by ``<<>>= (...) @`` instead of `````{r} (...)
+````` blocks.
+
+To compile this document, you can use the following command at a shell
+prompt:
+
+::
+
+    Pweave -f rst --figure-directory=_static template.Pnw
+    rst2html template.rst > template.html
+
+You will probably have to install `Pweave <http://mpastell.com/pweave/>`_ as
+described on the main website (``easy_install -U Pweave``). In case
+``rst2html`` is not available on your system, try ``rst2html.py`` instead.
+
+Importing data
+--------------
+
+The following Python code is based on the **first project**. 
+
+Without further option, the following code chunk will be printed and
+executed. The ``term = True`` option allow to display Python Input and
+Output. 
+
+<<term = True>>=
+import pandas.rpy.common as com
+filename = "01-weights.sav"
+w = com.robj.r('foreign::read.spss("%s", to.data.frame=TRUE)' % filename)
+w = com.convert_robj(w)
+w.head()
+@ 
+
+The following chunk will, however, not be displayed, but expressions will be
+evaluated and results available for later use.
+
+<<echo = False>>=
+from scipy import stats
+@
+
+Overview
+--------
+
+Here is a brief sketch of the data, number and type of variables, number of
+observations, etc.
+
+Formatted tables can be created by enclosing instructions in a code chunk
+and adding a ``csv-table`` directive just before the code chunk.
+
+.. csv-table::
+   :header: "value", "square"
+
+<<results = 'rst', echo = False>>=
+for i in range(10):
+    print '  ', i, ',', i*2
+@
+
+Figures are displayed easily too, and there are various custom settings that
+can be used, see the Pweave `Code Chunks Options
+<http://mpastell.com/pweave/usage.html#code-chunk-options>`_. 
+
+<<fig = True, width = 450>>=
+# example from http://matplotlib.org/users/pyplot_tutorial.html
+import numpy as np
+import matplotlib.pyplot as plt
+
+mu, sigma = 100, 15
+x = mu + sigma * np.random.randn(10000)
+
+# the histogram of the data
+n, bins, patches = plt.hist(x, 50, normed=1, facecolor='g', alpha=0.75)
+
+plt.xlabel('Smarts')
+plt.ylabel('Probability')
+plt.title('Histogram of IQ')
+plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+plt.axis([40, 160, 0, 0.03])
+plt.grid(True)
+plt.show()
+@ 
+
+
+Finally, external figures can be included using standard reST syntax:
+``.. image:: filename``.
+
+.. image:: ./ens.jpg
