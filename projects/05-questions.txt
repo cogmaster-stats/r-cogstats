@@ -1,0 +1,26 @@
+Using a knitr or Pweave custom report, you are asked to answer the following
+questions:
+
+1. (a) Give a numerical summary of the response variable (sample size, mean,
+   standard deviation and range) for each levels of Daycare and Age group,
+   separately. Factor levels will have to be recoded as described in the
+   description file. Results should be printed in two Tables. (b) Perform
+   the same numerical summary by considering the 4 treatments defined by
+   crossing all factor levels together.
+
+2. Use box-and-whiskers charts or density plots to show the distribution of
+   individual increase in heart rate for each treatment.
+
+3. Run a two-way ANOVA by considering increase factor score as the response
+   variable and Daycare and Age group as explanatory variables, with their
+   interaction. (a) Use an interaction plot to summarize the main
+   findings. (b) Is the interaction significant at the 5% level? (c) If not,
+   summarize the effect of each factor (partial eta squared and p-value).
+
+4. Compare results obtained in (3) with those from a two-way ANOVA relying
+   on (a) Type II or (b) Type III sum of squares which are available in the
+   Anova() command from the car R package (install.packages("car")) or the
+   anova_lm() command from the statsmodels Python package. Are the results
+   influenced by the order in which factors enter the model in each case?
+   (See http://goo.gl/JUJNGj for details about computing type I, II and III
+   SS.)

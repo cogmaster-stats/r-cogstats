@@ -1,0 +1,62 @@
+## Research question
+
+In this study, researchers were interested in perspective or role taking in
+young children in relation with daycare experience. A total of 40 children,
+aged 2 to 5 years, were subjected to a battery of tests on perspective
+taking (e.g., a card-stimulus with different pictures on each face was
+placed between the subject and the experimenter, and the subject had to
+guess what the experimenter was actually seeing). Subjects were allocated to
+two groups: those who had extensive daycare experience, and those who had no
+daycare experience. A second experimental factor was the age of the
+children (2 groups): 2-3 years and 4-5 years. The response variable is a
+composite score dervied from Factor Analysis of performance on role taking
+tasks, with higher scores indicating better performance.
+
+The main questions are:
+
+1. Does daycare experience improve overall performance on perspective
+   taking?
+2. Is this result influenced by the age of the subject?
+
+
+## Loading data in R or Python
+
+Individual data are available in the file 05-role.dat. Instructions to load
+this data set in R are given below. Note that categorical predictors are
+stored as integers, with the following convention:
+
+- 1st column, daycare experience: 1 = no daycare experience, 2 = daycare
+  experience
+- 2nd column, age group: 1 = younger, 2 = older 
+
+> r <- read.table("05-role.dat", header=FALSE)
+> names(r)
+[1] "V1" "V2" "V3"
+> str(r)
+'data.frame':	40 obs. of  3 variables:
+ $ V1: int  1 1 1 1 1 1 1 1 1 1 ...
+ $ V2: int  1 1 1 1 1 1 1 1 1 1 ...
+ $ V3: num  -0.139 -2.002 -1.631 -2.173 0.179 ...
+
+Note that there are no variable names, so it might be convenient to add some
+relevant names.
+
+Using Python, with a working installation of Pandas, you can use the
+following instructions:
+
+>>> import pandas as pd
+>>> r = pd.read_table("05-role.dat", header=None, sep='\s+')
+>>> r.head()
+   0  1      2
+0  1  1 -0.139
+1  1  1 -2.002
+2  1  1 -1.631
+3  1  1 -2.173
+4  1  1  0.179
+
+
+## Reference
+
+HP Klemchuk, LA Bond, and DC Howell, Coherence and correlates of
+level 1 perspective taking in young children, Merrill-Palmer Quaterly, 1990
+(36), 369-387. 
