@@ -9,7 +9,7 @@ questions:
    crossing all factor levels together.
 
 2. Use box-and-whiskers charts or density plots to show the distribution of
-   individual increase in heart rate for each treatment.
+   individual increase in the composite score for each treatment.
 
 3. Run a two-way ANOVA by considering increase factor score as the response
    variable and Daycare and Age group as explanatory variables, with their

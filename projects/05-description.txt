@@ -9,7 +9,7 @@ guess what the experimenter was actually seeing). Subjects were allocated to
 two groups: those who had extensive daycare experience, and those who had no
 daycare experience. A second experimental factor was the age of the
 children (2 groups): 2-3 years and 4-5 years. The response variable is a
-composite score dervied from Factor Analysis of performance on role taking
+composite score derived from Factor Analysis of performance on role taking
 tasks, with higher scores indicating better performance.
 
 The main questions are:
