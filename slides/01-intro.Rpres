@@ -1,13 +1,13 @@
 Working with data
 ========================================================
 author: Christophe Lalanne
-date: October 8th, 2013
+date: October 7th, 2014
 css: custom.css
 
 ```{r, include=FALSE}
 library(xtable)
 library(knitcitations)
-cite_options(tooltip=TRUE)
+#cite_options(tooltip=TRUE)
 bib <- read.bibtex("../refs.bib")
 opts_chunk$set(cache=TRUE)
 options(reindent.spaces=2)
@@ -72,7 +72,7 @@ Text-based data file are generally easy to process with many text processing pro
 A ready to use data set
 ========================================================
 
-Observers rated relatedness of pairs of images of children that were either siblings or not on a 11-point scale. 
+Observers rated relatedness of pairs of images of children that were either siblings or not on a 11-point scale.
 
 ```{r, echo=FALSE, results='asis'}
 data(Faces, package="MPDiR")
@@ -204,6 +204,8 @@ RStudio greatly facilitates the data analysis workflow: Rather than writing dire
 References
 ========================================================
 
+<small>
 ```{r, echo=FALSE, results='asis'}
-bibliography(style="text")
+bibliography()
 ```
+</small>

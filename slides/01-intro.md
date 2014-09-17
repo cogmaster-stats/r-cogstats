@@ -1,9 +1,8 @@
 Working with data
 ========================================================
 author: Christophe Lalanne
-date: October 8th, 2013
+date: October 7th, 2014
 css: custom.css
-
 
 
 
@@ -37,7 +36,7 @@ How to collect data
 - Simple random sampling: each individual from the population has the same probability of being selected; this is usually done **without replacement** (e.g., surveys, psychological experiment, clinical trials).
 - Systematic random sampling, (two-stage) cluster sampling, stratified sampling, etc.
 
-In the end, we must have a **random sample** of statistical units with single or multiple observations on each unit. With this sample, we usually aim at inferring some properties at the level of the population from which this 'representative' (<span class="showtooltip" title="Selz M (2013). La représentativité en statistiques, volume 8 series M\'ethodes et Savoirs. Publications de l'INED."><a href="">Selz, 2013</a></span>) sample was drawn.
+In the end, we must have a **random sample** of statistical units with single or multiple observations on each unit. With this sample, we usually aim at inferring some properties at the level of the population from which this 'representative' (Selz, 2013) sample was drawn.
 
 
 How to store data
@@ -49,7 +48,7 @@ Better to rely on **plain text files** (space, tab or comma-delimited) or **data
 - recording of each data step in text files
 - easy storage and sharing of data
 
-The last two points are part of what is called **reproducible research** (<span class="showtooltip" title="Peng R (2009). 'Reproducible Research and Biostatistics.' Biostatistics, 10(3), pp. 405-408."><a href="">Peng, 2009</a></span>).
+The last two points are part of what is called **reproducible research** (Peng, 2009).
 
 Data processing
 ========================================================
@@ -60,25 +59,24 @@ Data processing
 
 Data can also be served through different files, e.g. dual files like Nifti `.hdr`+`.img`, or PLINK `.bed`+`.bim` (require merging).
 
-Text-based data file are generally easy to process with many text processing programs, e.g., sed, awk, Perl (<span class="showtooltip" title="Chambers J (2008). Software for Data Analysis. Programming with R. Springer."><a href="">Chambers, 2008</a></span>), but we will see that R offers nice facilities for that kind of stuff too.
+Text-based data file are generally easy to process with many text processing programs, e.g., sed, awk, Perl (Chambers, 2008), but we will see that R offers nice facilities for that kind of stuff too.
 
 A ready to use data set
 ========================================================
 
-Observers rated relatedness of pairs of images of children that were either siblings or not on a 11-point scale. 
+Observers rated relatedness of pairs of images of children that were either siblings or not on a 11-point scale.
 
-<!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Tue Oct  8 18:58:48 2013 -->
-<TABLE border=1>
-<TR> <TH>  </TH> <TH> SimRating </TH> <TH> sibs </TH> <TH> agediff </TH> <TH> gendiff </TH> <TH> Obs </TH> <TH> Image </TH>  </TR>
-  <TR> <TD align="right"> 1 </TD> <TD align="right"> 10.00 </TD> <TD> 1 </TD> <TD align="right"> 29.00 </TD> <TD> diff </TD> <TD> S1 </TD> <TD> Im1 </TD> </TR>
-  <TR> <TD align="right"> 2 </TD> <TD align="right"> 10.00 </TD> <TD> 1 </TD> <TD align="right"> 37.00 </TD> <TD> diff </TD> <TD> S1 </TD> <TD> Im2 </TD> </TR>
-  <TR> <TD align="right"> 3 </TD> <TD align="right"> 6.00 </TD> <TD> 1 </TD> <TD align="right"> 47.00 </TD> <TD> diff </TD> <TD> S1 </TD> <TD> Im3 </TD> </TR>
-  <TR> <TD align="right"> 4 </TD> <TD align="right"> 1.00 </TD> <TD> 1 </TD> <TD align="right"> 44.00 </TD> <TD> diff </TD> <TD> S1 </TD> <TD> Im4 </TD> </TR>
-  <TR> <TD align="right"> 5 </TD> <TD align="right"> 10.00 </TD> <TD> 1 </TD> <TD align="right"> 25.00 </TD> <TD> diff </TD> <TD> S1 </TD> <TD> Im5 </TD> </TR>
-  <TR> <TD align="right"> 6 </TD> <TD align="right"> 9.00 </TD> <TD> 1 </TD> <TD align="right"> 0.00 </TD> <TD> same </TD> <TD> S1 </TD> <TD> Im6 </TD> </TR>
-   </TABLE>
-
+<!-- html table generated in R 3.1.1 by xtable 1.7-4 package -->
+<!-- Wed Sep 17 11:43:42 2014 -->
+<table border=1>
+<tr> <th>  </th> <th> SimRating </th> <th> sibs </th> <th> agediff </th> <th> gendiff </th> <th> Obs </th> <th> Image </th>  </tr>
+  <tr> <td align="right"> 1 </td> <td align="right"> 10.00 </td> <td> 1 </td> <td align="right"> 29.00 </td> <td> diff </td> <td> S1 </td> <td> Im1 </td> </tr>
+  <tr> <td align="right"> 2 </td> <td align="right"> 10.00 </td> <td> 1 </td> <td align="right"> 37.00 </td> <td> diff </td> <td> S1 </td> <td> Im2 </td> </tr>
+  <tr> <td align="right"> 3 </td> <td align="right"> 6.00 </td> <td> 1 </td> <td align="right"> 47.00 </td> <td> diff </td> <td> S1 </td> <td> Im3 </td> </tr>
+  <tr> <td align="right"> 4 </td> <td align="right"> 1.00 </td> <td> 1 </td> <td align="right"> 44.00 </td> <td> diff </td> <td> S1 </td> <td> Im4 </td> </tr>
+  <tr> <td align="right"> 5 </td> <td align="right"> 10.00 </td> <td> 1 </td> <td align="right"> 25.00 </td> <td> diff </td> <td> S1 </td> <td> Im5 </td> </tr>
+  <tr> <td align="right"> 6 </td> <td align="right"> 9.00 </td> <td> 1 </td> <td align="right"> 0.00 </td> <td> same </td> <td> S1 </td> <td> Im6 </td> </tr>
+   </table>
 
 <small>Maloney, L. T., and Dal Martello, M. F. (2006). Kin recognition and the perceived facial similarity of children. Journal of Vision, 6(10):4, 1047–1056, http://journalofvision.org/6/10/4/.</small>
 
@@ -87,16 +85,15 @@ Real-life data
 
 Raw data generally require [**data cleansing**](http://bit.ly/19BqCen).
 
-<!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Tue Oct  8 18:59:14 2013 -->
-<TABLE border=1>
-<TR> <TH> id </TH> <TH> centre </TH> <TH> sex </TH> <TH> age </TH> <TH> session </TH> <TH> recover </TH>  </TR>
-  <TR> <TD align="right"> 1017 </TD> <TD align="right">   1 </TD> <TD align="right">   1 </TD> <TD> 23 </TD> <TD> 8 </TD> <TD align="right">   0 </TD> </TR>
-  <TR> <TD align="right"> 1023 </TD> <TD align="right">   1 </TD> <TD align="right">  </TD> <TD> 126 </TD> <TD> 6 </TD> <TD align="right">   1 </TD> </TR>
-  <TR> <TD align="right"> 2044 </TD> <TD align="right">   2 </TD> <TD align="right">   1 </TD> <TD> 24 </TD> <TD> -1 </TD> <TD align="right">   1 </TD> </TR>
-  <TR> <TD align="right"> 2086 </TD> <TD align="right">   2 </TD> <TD align="right">   2 </TD> <TD> 27 </TD> <TD> ? </TD> <TD align="right">   0 </TD> </TR>
-   </TABLE>
-
+<!-- html table generated in R 3.1.1 by xtable 1.7-4 package -->
+<!-- Wed Sep 17 11:43:42 2014 -->
+<table border=1>
+<tr> <th> id </th> <th> centre </th> <th> sex </th> <th> age </th> <th> session </th> <th> recover </th>  </tr>
+  <tr> <td align="right"> 1017 </td> <td align="right">   1 </td> <td align="right">   1 </td> <td> 23 </td> <td> 8 </td> <td align="right">   0 </td> </tr>
+  <tr> <td align="right"> 1023 </td> <td align="right">   1 </td> <td align="right">  </td> <td> 126 </td> <td> 6 </td> <td align="right">   1 </td> </tr>
+  <tr> <td align="right"> 2044 </td> <td align="right">   2 </td> <td align="right">   1 </td> <td> 24 </td> <td> -1 </td> <td align="right">   1 </td> </tr>
+  <tr> <td align="right"> 2086 </td> <td align="right">   2 </td> <td align="right">   2 </td> <td> 27 </td> <td> ? </td> <td align="right">   0 </td> </tr>
+   </table>
 
 What does `recover` = 0 or `sex` = 1 mean? Are negative values allowed for `session`? Leading zeros in IDs and centre number are lost. We need a **data dictionary**.
 
@@ -123,7 +120,7 @@ Data analysis as an iterative process
 Getting started with R
 ========================================================
 
-[R](http://www.r-project.org) is a statistical package for working with data (<span class="showtooltip" title="Ihaka R and Gentleman R (1996). 'R: A language for data analysis and graphics.' Journal of Computational and Graphical Statistics, 5(3), pp. 299-314."><a href="">Ihaka & Gentleman, 1996</a></span>; <span class="showtooltip" title="Venables W and Ripley B (2002). Modern Applied Statistics with S, 4th edition. Springer. ISBN 0-387-95457-0."><a href="">Venables & Ripley, 2002</a></span>). It features most of modern statistical tools, and convenient functions to import, manipulate and visualize even high-dimensional data sets. There is usually no need to switch to another program throughout project management. 
+[R](http://www.r-project.org) is a statistical package for working with data (Ihaka and Gentleman, 1996; Venables and Ripley, 2002). It features most of modern statistical tools, and convenient functions to import, manipulate and visualize even high-dimensional data sets. There is usually no need to switch to another program throughout project management. 
 
 It is open-source (GPL licence), and it has a very active community of users ([r-help](https://stat.ethz.ch/mailman/listinfo/r-help), [Stack Overflow](http://stackoverflow.com/questions/tagged/r)). 
 
@@ -142,7 +139,6 @@ r <- 5
 ```
 [1] 157.1
 ```
-
 
 Basically, R interprets commands that are sent by the user, and returns an output (which might be nothing). 
 The syntax of the language is close to that of any programming language: we process data associated to **variables** with the help of dedicated **commands** (functions).
@@ -179,7 +175,6 @@ head(bs, n = 2)
 2   Male  140 150 124     NA   72.5   1001121
 ```
 
-
 Rectangular data set
 ========================================================
 
@@ -209,7 +204,6 @@ names(bs)[1:4]
 ```
 [1] "Gender" "FSIQ"   "VIQ"    "PIQ"   
 ```
-
 There are 40 individuals and 7 variables. Variables numbered 1 to 4 are: gender, full scale IQ, verbal IQ, and performance IQ.
 
 Querying data properties with R
@@ -233,7 +227,6 @@ str(bs, vec.len = 1)
  $ MRI_Count: int  816932 1001121 ...
 ```
 
-
 Variables are either **numeric** (continuous or discrete) or **categorical** (with ordered or unordered levels). 
 
 Note that there exist other representations for working with dates, censored variables, or strings.
@@ -250,19 +243,20 @@ RStudio greatly facilitates the data analysis workflow: Rather than writing dire
 References
 ========================================================
 
-Chambers J (2008). _Software for Data Analysis. Programming with
-R_. Springer.
+<small>
+[1] J. Chambers. _Software for Data Analysis. Programming with R_.
+Springer, 2008.
 
-Ihaka R and Gentleman R (1996). "R: A language for data analysis
-and graphics." _Journal of Computational and Graphical
-Statistics_, *5*(3), pp. 299-314.
+[2] R. Ihaka and R. Gentleman. "R: A language for data analysis
+and graphics". In: _Journal of Computational and Graphical
+Statistics_ 5.3 (1996), pp. 299-314.
 
-Peng R (2009). "Reproducible Research and Biostatistics."
-_Biostatistics_, *10*(3), pp. 405-408.
+[3] R. Peng. "Reproducible Research and Biostatistics". In:
+_Biostatistics_ 10.3 (2009), pp. 405-408.
 
-Selz M (2013). _La représentativité en statistiques_, volume 8
-series M\'ethodes et Savoirs. Publications de l'INED.
+[4] M. Selz. _La représentativité en statistiques_. Vol. 8.
+Méthodes et Savoirs. Publications de l'INED, 2013.
 
-Venables W and Ripley B (2002). _Modern Applied Statistics with
-S_, 4th edition. Springer. ISBN 0-387-95457-0.
-
+[5] W. Venables and B. Ripley. _Modern Applied Statistics with S_.
+4th. ISBN 0-387-95457-0. Springer, 2002.
+</small>
