@@ -1,9 +1,8 @@
 Data analysis and statistical inference
 ========================================================
 author: Christophe Lalanne
-date: October 15, 2013
+date: October 14, 2014
 css: custom.css
-
 
 
 
@@ -23,7 +22,7 @@ To call in the statistician after the experiment is done may be no more than ask
 Statistics are and statistics is
 ========================================================
 
-"Statisticians are applied philosophers. Philosophers argue how many angels can dance on the head of a needle; statisticians *count* them. (...) We can predict nothing with certainty but we can predict how uncertain our predictions will be, on average that is. Statistics is the science that tells us how."  <span class="showtooltip" title="Senn S (2003). Dicing with death. Chance, Risk and Health. Cambridge University Press."><a href="">Senn (2003)</a></span>
+"Statisticians are applied philosophers. Philosophers argue how many angels can dance on the head of a needle; statisticians *count* them. (...) We can predict nothing with certainty but we can predict how uncertain our predictions will be, on average that is. Statistics is the science that tells us how."  Senn (2003)
 
 * Providing appropriate (meaningful and robust) numerical and visual summary of the data.
 * Summarizing associations, spotting unusual observations.
@@ -44,13 +43,12 @@ Always look at the data before
 
 **Anscombe's Quartet**  
 Pearson's correlations:
-<!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Mon Oct 14 00:06:23 2013 -->
-<TABLE border=1>
-<TR> <TH> x1-y1 </TH> <TH> x2-y2 </TH> <TH> x3-y3 </TH> <TH> x4-y4 </TH>  </TR>
-  <TR> <TD align="right"> 0.816 </TD> <TD align="right"> 0.816 </TD> <TD align="right"> 0.816 </TD> <TD align="right"> 0.817 </TD> </TR>
-   </TABLE>
-
+<!-- html table generated in R 3.1.1 by xtable 1.7-4 package -->
+<!-- Sun Oct 12 21:45:48 2014 -->
+<table border=1>
+<tr> <th> x1-y1 </th> <th> x2-y2 </th> <th> x3-y3 </th> <th> x4-y4 </th>  </tr>
+  <tr> <td align="right"> 0.816 </td> <td align="right"> 0.816 </td> <td align="right"> 0.816 </td> <td align="right"> 0.817 </td> </tr>
+   </table>
 
 Pearson's correlation, as a measure of linear association, is meaningful in case (a) only. The assumption of linearity must be carefully checked.
 
@@ -59,13 +57,12 @@ Pearson's correlation, as a measure of linear association, is meaningful in case
 ![plot of chunk anscombe](02-eda-inference-figure/anscombe.png) 
 
 
-
 Exploratory Data Analysis
 ========================================================
 
-EDA is about exploring data for patterns and relationships without requiring prior hypotheses and using resistant methods (<span class="showtooltip" title="Tukey J (1977). Exploratory Data Analysis. Addison-Wesley."><a href="">Tukey, 1977</a></span>). This iterative approach makes heavy use of graphical methods to suggest hypotheses and check model assumptions. 
+EDA is about exploring data for patterns and relationships without requiring prior hypotheses and using resistant methods (Tukey, 1977). This iterative approach makes heavy use of graphical methods to suggest hypotheses and check model assumptions. 
 
-The main ideas down to: (<span class="showtooltip" title="Hoaglin D, Mosteller F and Tukey K (1985). Understanding Robust  and Exploratory Data Analysis. New York: Wiley."><a href="">Hoaglin et al. 1985</a></span>)
+The main ideas down to: (Hoaglin, Mosteller, and Tukey, 1985)
 
 - resistance (unheeded local misfit)
 - residuals (data minus model fit)
@@ -78,14 +75,14 @@ Hypothesis testing
 
 We focus on a **single hypothesis** (null hypothesis) and calculate the probability that the data would have been observed if the null hypothesis were true. If this probability is small enough (usually, [0.05](http://www.jerrydallal.com/LHSP/p05.htm)), then we "reject" the null. The statistical power associated with such a test is the probability that if the null were actually false we would reject it (given the same data).
 
-In sum, the idea is to confront a single hypothesis with the data, through a designed experiment, with falsification as the only "truth." This approach follows from Popper's philosophical development and was implemented by Fisher, and Neyman & Pearson's NHST framework. See <span class="showtooltip" title="Hilborn R and Mangel M (1997). The ecological detective. Confronting models with data. Princeton University Press."><a href="">Hilborn & Mangel (1997)</a></span> for more discussion.
+In sum, the idea is to confront a single hypothesis with the data, through a designed experiment, with falsification as the only "truth." This approach follows from Popper's philosophical development and was implemented by Fisher, and Neyman & Pearson's NHST framework. See Hilborn and Mangel (1997) for more discussion.
 
 
 Alternative paradigms
 ========================================================
 
 - **Likelihood approach:** Use the data to arbitrate between two models. Given the data and a mathematical formulation of two competing models, we can ask, "How likely are the data, given the model?"
-- **Bayesian approach:** Use external information that allows to judge *a priori* which model is more likely to be true, i.e. use a prior probability that can be "updated" to yield a posterior probability, given the data. See <span class="showtooltip" title="Ashby D (2006). 'Bayesian statistics in medicine: a 25 year review.' Statistics in Medicine, 25(21), pp. 3589-3631."><a href="">Ashby (2006)</a></span> for a review in biomedical research, and [A Good P–value is Hard to Find: Why I’m a Bayesian When Time Allows](http://biostat.mc.vanderbilt.edu/wiki/pub/Main/FHHandouts/whyBayesian.pdf) (FE Harrell Jr, 2013).
+- **Bayesian approach:** Use external information that allows to judge *a priori* which model is more likely to be true, i.e. use a prior probability that can be "updated" to yield a posterior probability, given the data. See Ashby (2006) for a review in biomedical research, and [A Good P–value is Hard to Find: Why I’m a Bayesian When Time Allows](http://biostat.mc.vanderbilt.edu/wiki/pub/Main/FHHandouts/whyBayesian.pdf) (FE Harrell Jr, 2013).
 
 
 We would rather like to know $P(H_0\mid\text{data})$ than $P(|S|>|s|)$ under the null–even if '[the earth is round (p < .05)](http://mark.reid.name/blog/the-earth-is-round.html).'
@@ -94,7 +91,7 @@ We would rather like to know $P(H_0\mid\text{data})$ than $P(|S|>|s|)$ under the
 A motivating example
 ========================================================
 
-<small>"Four of these dishes were filled with a conventional nutrient solution and four held an experimental 'life-extending' solution to which vitamin E had been added. I waited three weeks with fingers crossed that there was no contamination of the cell cultures, but at the end of this test period three dishes of each type had survived. My technician and I transplanted the cells, let them grow for 24 hours in contact with a radioactive label, and then fixed and stained them before covering them with a photographic emulsion. Ten days passed and we were ready to examine the autoradiographs. Two years had elapsed since I first envisioned this experiment and now the results were in: I had the six numbers I needed. 'I've lost the labels,' my technician said as she handed me the results. This was a dire situation. Without the labels, I had no way of knowing which cell cultures had been treated with vitamin E and which had not." (<span class="showtooltip" title="Good P (2005). Permutation, Parametric and Bootstrap Tests of Hypothesis, 3rd edition. Springer."><a href="">Good, 2005</a></span>) </small>
+<small>"Four of these dishes were filled with a conventional nutrient solution and four held an experimental 'life-extending' solution to which vitamin E had been added. I waited three weeks with fingers crossed that there was no contamination of the cell cultures, but at the end of this test period three dishes of each type had survived. My technician and I transplanted the cells, let them grow for 24 hours in contact with a radioactive label, and then fixed and stained them before covering them with a photographic emulsion. Ten days passed and we were ready to examine the autoradiographs. Two years had elapsed since I first envisioned this experiment and now the results were in: I had the six numbers I needed. 'I've lost the labels,' my technician said as she handed me the results. This was a dire situation. Without the labels, I had no way of knowing which cell cultures had been treated with vitamin E and which had not." (Good, 2005) </small>
 
     121, 118, 110, 34, 12, 22
     
@@ -113,18 +110,17 @@ A permutation testing approach
 ========================================================
 
 There are ${6 \choose 3}$ to arrange 3 elements (`X1` to `X3`) taken among a total of 6 elements. Let $s$ be the sum of their values. The observed sum `S=121+118+110=349`. How many times do we observe such an extreme statistic? 
-<!-- html table generated in R 2.15.2 by xtable 1.7-1 package -->
-<!-- Mon Oct 14 00:06:23 2013 -->
-<TABLE border=1>
-<TR> <TH>  </TH> <TH> X1 </TH> <TH> X2 </TH> <TH> X3 </TH> <TH> s </TH>  </TR>
-  <TR> <TD align="right"> 1 </TD> <TD align="right"> 121.00 </TD> <TD align="right"> 118.00 </TD> <TD align="right"> 110.00 </TD> <TD align="right"> 349.00 </TD> </TR>
-  <TR> <TD align="right"> 2 </TD> <TD align="right"> 121.00 </TD> <TD align="right"> 118.00 </TD> <TD align="right"> 34.00 </TD> <TD align="right"> 273.00 </TD> </TR>
-  <TR> <TD align="right"> 3 </TD> <TD align="right"> 121.00 </TD> <TD align="right"> 118.00 </TD> <TD align="right"> 12.00 </TD> <TD align="right"> 251.00 </TD> </TR>
-  <TR> <TD align="right"> 18 </TD> <TD align="right"> 110.00 </TD> <TD align="right"> 34.00 </TD> <TD align="right"> 22.00 </TD> <TD align="right"> 166.00 </TD> </TR>
-  <TR> <TD align="right"> 19 </TD> <TD align="right"> 110.00 </TD> <TD align="right"> 12.00 </TD> <TD align="right"> 22.00 </TD> <TD align="right"> 144.00 </TD> </TR>
-  <TR> <TD align="right"> 20 </TD> <TD align="right"> 34.00 </TD> <TD align="right"> 12.00 </TD> <TD align="right"> 22.00 </TD> <TD align="right"> 68.00 </TD> </TR>
-   </TABLE>
-
+<!-- html table generated in R 3.1.1 by xtable 1.7-4 package -->
+<!-- Sun Oct 12 21:45:49 2014 -->
+<table border=1>
+<tr> <th>  </th> <th> X1 </th> <th> X2 </th> <th> X3 </th> <th> s </th>  </tr>
+  <tr> <td align="right"> 1 </td> <td align="right"> 121.00 </td> <td align="right"> 118.00 </td> <td align="right"> 110.00 </td> <td align="right"> 349.00 </td> </tr>
+  <tr> <td align="right"> 2 </td> <td align="right"> 121.00 </td> <td align="right"> 118.00 </td> <td align="right"> 34.00 </td> <td align="right"> 273.00 </td> </tr>
+  <tr> <td align="right"> 3 </td> <td align="right"> 121.00 </td> <td align="right"> 118.00 </td> <td align="right"> 12.00 </td> <td align="right"> 251.00 </td> </tr>
+  <tr> <td align="right"> 18 </td> <td align="right"> 110.00 </td> <td align="right"> 34.00 </td> <td align="right"> 22.00 </td> <td align="right"> 166.00 </td> </tr>
+  <tr> <td align="right"> 19 </td> <td align="right"> 110.00 </td> <td align="right"> 12.00 </td> <td align="right"> 22.00 </td> <td align="right"> 144.00 </td> </tr>
+  <tr> <td align="right"> 20 </td> <td align="right"> 34.00 </td> <td align="right"> 12.00 </td> <td align="right"> 22.00 </td> <td align="right"> 68.00 </td> </tr>
+   </table>
 
 Comparing two means
 ========================================================
@@ -139,7 +135,6 @@ function (x, y = NULL, alternative = c("two.sided", "less", "greater"),
     ...) 
 NULL
 ```
-
 
 The case of paired samples
 ========================================================
@@ -171,7 +166,6 @@ aggregate(extra ~ group, data=sleep, mean)
 ```
 
 
-
 The case of paired samples (con't)
 ========================================================
 
@@ -184,30 +178,26 @@ t.test(extra ~ group, data=sleep, paired=TRUE)
 
 	Paired t-test
 
-data:  extra by group 
+data:  extra by group
 t = -4.062, df = 9, p-value = 0.002833
-alternative hypothesis: true difference in means is not equal to 0 
+alternative hypothesis: true difference in means is not equal to 0
 95 percent confidence interval:
- -2.4599 -0.7001 
+ -2.4599 -0.7001
 sample estimates:
 mean of the differences 
                   -1.58 
 ```
 
-
 <img src="02-eda-inference-figure/unnamed-chunk-6.png" title="plot of chunk unnamed-chunk-6" alt="plot of chunk unnamed-chunk-6" style="display: block; margin: auto;" />
-
 
 The case of paired samples (con't)
 ========================================================
 
 <img src="02-eda-inference-figure/unnamed-chunk-7.png" title="plot of chunk unnamed-chunk-7" alt="plot of chunk unnamed-chunk-7" style="display: block; margin: auto;" />
 
-
 ---
 
 <img src="02-eda-inference-figure/unnamed-chunk-8.png" title="plot of chunk unnamed-chunk-8" alt="plot of chunk unnamed-chunk-8" style="display: block; margin: auto;" />
-
 
 Student's t vs. Gaussian distribution
 ========================================================
@@ -219,13 +209,11 @@ For small $n$, the corresponding T distribution exhibits thicker tails (accounti
 
 ![plot of chunk unnamed-chunk-9](02-eda-inference-figure/unnamed-chunk-9.png) 
 
-
 One-sided vs. two-sided tests
 ========================================================
 
 
 ![plot of chunk unnamed-chunk-10](02-eda-inference-figure/unnamed-chunk-10.png) 
-
 
 ---
 
@@ -264,16 +252,15 @@ binom.test(x=4, n=10)
 
 	Exact binomial test
 
-data:  4 and 10 
+data:  4 and 10
 number of successes = 4, number of trials = 10, p-value = 0.7539
-alternative hypothesis: true probability of success is not equal to 0.5 
+alternative hypothesis: true probability of success is not equal to 0.5
 95 percent confidence interval:
- 0.1216 0.7376 
+ 0.1216 0.7376
 sample estimates:
 probability of success 
                    0.4 
 ```
-
 
 Compare to the following test which relies on a Gaussian approximation:
 
@@ -282,24 +269,24 @@ prop.test(x=4, n=10)
 ```
 
 
-
 References
 ========================================================
 
-Ashby D (2006). "Bayesian statistics in medicine: a 25 year
-review." _Statistics in Medicine_, *25*(21), pp. 3589-3631.
+<small>
+[1] D. Ashby. "Bayesian statistics in medicine: a 25 year review".
+In: _Statistics in Medicine_ 25.21 (2006), pp. 3589-3631.
 
-Good P (2005). _Permutation, Parametric and Bootstrap Tests of
-Hypothesis_, 3rd edition. Springer.
+[2] P. Good. _Permutation, Parametric and Bootstrap Tests of
+Hypothesis_. 3rd. Springer, 2005.
 
-Hilborn R and Mangel M (1997). _The ecological detective.
-Confronting models with data_. Princeton University Press.
+[3] R. Hilborn and M. Mangel. _The ecological detective.
+Confronting models with data_. Princeton University Press, 1997.
 
-Hoaglin D, Mosteller F and Tukey K (1985). _Understanding Robust
-and Exploratory Data Analysis_. New York: Wiley.
+[4] D. Hoaglin, F. Mosteller and K. Tukey. _Understanding Robust
+and Exploratory Data Analysis_. New York: Wiley, 1985.
 
-Senn S (2003). _Dicing with death. Chance, Risk and Health_.
-Cambridge University Press.
+[5] S. Senn. _Dicing with death. Chance, Risk and Health_.
+Cambridge University Press, 2003.
 
-Tukey J (1977). _Exploratory Data Analysis_. Addison-Wesley.
-
+[6] J. Tukey. _Exploratory Data Analysis_. Addison-Wesley, 1977.
+</small>

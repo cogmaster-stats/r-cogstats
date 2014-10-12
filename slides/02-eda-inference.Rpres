@@ -1,13 +1,13 @@
 Data analysis and statistical inference
 ========================================================
 author: Christophe Lalanne
-date: October 15, 2013
+date: October 14, 2014
 css: custom.css
 
 ```{r, include=FALSE}
 library(xtable)
 library(knitcitations)
-cite_options(tooltip=TRUE)
+#cite_options(tooltip=TRUE)
 bib <- read.bibtex("../refs.bib")
 library(Cairo)
 CairoFonts(
@@ -303,6 +303,8 @@ prop.test(x=4, n=10)
 References
 ========================================================
 
+<small>
 ```{r, echo=FALSE, results='asis'}
-bibliography(style="text")
+bibliography()
 ```
+</small>
