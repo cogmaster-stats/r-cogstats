@@ -44,7 +44,7 @@ Always look at the data before
 **Anscombe's Quartet**  
 Pearson's correlations:
 <!-- html table generated in R 3.1.1 by xtable 1.7-4 package -->
-<!-- Sun Oct 12 21:45:48 2014 -->
+<!-- Mon Oct 13 12:01:58 2014 -->
 <table border=1>
 <tr> <th> x1-y1 </th> <th> x2-y2 </th> <th> x3-y3 </th> <th> x4-y4 </th>  </tr>
   <tr> <td align="right"> 0.816 </td> <td align="right"> 0.816 </td> <td align="right"> 0.816 </td> <td align="right"> 0.817 </td> </tr>
@@ -111,7 +111,7 @@ A permutation testing approach
 
 There are ${6 \choose 3}$ to arrange 3 elements (`X1` to `X3`) taken among a total of 6 elements. Let $s$ be the sum of their values. The observed sum `S=121+118+110=349`. How many times do we observe such an extreme statistic? 
 <!-- html table generated in R 3.1.1 by xtable 1.7-4 package -->
-<!-- Sun Oct 12 21:45:49 2014 -->
+<!-- Mon Oct 13 12:01:58 2014 -->
 <table border=1>
 <tr> <th>  </th> <th> X1 </th> <th> X2 </th> <th> X3 </th> <th> s </th>  </tr>
   <tr> <td align="right"> 1 </td> <td align="right"> 121.00 </td> <td align="right"> 118.00 </td> <td align="right"> 110.00 </td> <td align="right"> 349.00 </td> </tr>
