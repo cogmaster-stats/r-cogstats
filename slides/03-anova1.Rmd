@@ -1,0 +1,238 @@
+---
+title: "Analysis of variance ➊"
+author: "Christophe Lalanne"
+date: "October 21, 2014"
+output:
+  ioslides_presentation:
+    css: style.css
+---
+
+```{r, include=FALSE}
+library(knitr)
+library(ascii)
+library(knitcitations)
+#cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG", dev.args = list(bg = 'transparent'))
+options(reindent.spaces=2)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(strip.background = list(col = "transparent"), 
+                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                plot.line = list(lwd = 2, col = my.col[1]),
+                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                superpose.line = list(lwd = 2, col = my.col),
+                box.rectangle = list(col = my.col),
+                box.umbrella = list(col = my.col),
+                box.dot = list(col = my.col),
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+# Synopsis
+
+---
+
+> The analysis of variance is not a mathematical theorem, but rather a convenient method of arranging the arithmetic. Ronald Fisher (1890-1962)
+
+<br /><br /><br />
+
+<center>
+**design of experiments • R data structure • split-apply-combine • one-way ANOVA**
+</center>
+
+<br /><br /><br />
+**Lectures:** OpenIntro Statistics, 4.2, 5.2, 5.5.
+
+
+# Design of experiments
+
+## Maximize precision while minimizing number of trials
+
+Implementation of an organized set of experimental units to **characterize the effect of certain treatments** or combination of treatments, on one or more response variables. 
+
+Taking into account one or more nuisance factors for the establishment of experimental design: **organize sources of unwanted variation** so that we can say that they affect treatment equivalently, making the comparison between treatments possible.
+
+## Some examples
+
+* Parallel (independent) groups
+* Completely randomized design
+* Incomplete block design (e.g., Latin square)
+* Split-plot design
+* Repeated measures, including cross-over trials
+
+**Randomization** (random allocation of units to treatments–experimental vs. quasi-experimental design), **factorial arrangement** of treatments, and **blocking** (grouping of similar units based on known but irrelevant characteristics) are keys components of experimental design `r citep(bib["montgomery12"])`. 
+
+
+## Comparing two groups
+
+Let us consider two series of measurement collected on $n = n_1 + n_2$ subjects. A classification factor (e.g., gender) is used to allocate $n_1$ and $n_2$ independant statistical units in two groups. This is a simple illustration of **two parallel groups**. 
+
+In clinical trials, usually we consider a control group and an 'active arm'. The control group serves as a comparator. Randomization ensures that all factors that could potentially affect the outcome are balanced across the two groups. Therefore, any observed effect can be explained by what makes the groups different.
+
+---
+
+To compare two means, a test statistic can be constructed as follows: $$
+t_{\text{obs}}=\frac{\bar x_1 - \bar
+x_2}{s_c\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}, $$ where the $\bar x_i$'s and
+$n_i$'s are sample means and sizes, and
+$s_c=\left[\left((n_1-1)s^2_{x_1}+(n_2-1)s^2_{x_2}\right)/(n_1+n_2-2)\right]^{1/2}$
+is the common variance. Under $H_0$, this test statistic follow a Student distribution with
+$n_1+n_2-2$ dof.
+
+![ttest](./img/fig-ttest_50pct.png)
+
+# Data structures in R
+
+## R representation of two-group data 
+
+Two possible ways: **wide form** and **long form**.
+
+```{r}
+n <- 20
+x <- rnorm(n, mean = 120, sd = 10)
+g <- gl(n = 2, k = 10, len = n)
+d <- data.frame(x1 = x[g == 1], x2 = x[g == 2])
+head(d, 4)
+```
+
+The two columns define two response variables: not always easy to manipulate, except in the two-group case.
+
+---
+
+```{r}
+da <- data.frame(outcome = x, group = g)
+levels(da$group) <- c("Control", "Treated")
+head(da)
+```
+
+There are now **two variables**: a response variable and a factor with two levels. Now it is easy to do things like this: describe `outcome` as a function of `group`.
+
+```{r, eval=FALSE}
+aggregate(outcome ~ group, data = da, mean)
+```
+
+
+---
+
+Yet another way to do this:
+```{r, message=FALSE}
+library(reshape2)
+db <- melt(d)
+head(db)
+```
+
+This produces the same result, but it is easily extended to two factors or more.
+
+```{r, eval=FALSE}
+aggregate(value ~ variable, data = db, mean)
+```
+
+## Describing variables relationships
+
+R relies on a **formula** to describe the relation between one or multiple response variables and one or more explanatory variables, according to Wilkinson & Rogers's notation `r citep(bib[c("wilkinson73","chambers92")])`. 
+
+This is a convenient way of representing relations between variables when designing an experiment, but it assumes that data are in the so-called long format. We must always describe a response variable as a function of other variables, unless we want to build a design matrix by hand. Data **reshaping** (melting/casting) utilities are essential tools.
+
+**Note:** R's formulae (and data frames, *de facto*) have been ported to [Python](http://patsy.readthedocs.org/en/latest/) and [Julia](http://juliastats.github.io/DataFrames.jl/formulas.html).
+
+---
+
+In the case of ANOVA and regression, a **single response variable** is put on the left of the `~` operator, followed by 
+
+| RHS     | Variable type    | Meaning                     | Equiv. to             |
+| ------- |:----------------:|:---------------------------:|:---------------------:|
+| x       | numeric          | simple linear regression    | 1 + x                 |
+| x + 0   | numeric          | idem without intercept      | x - 1                 |
+| a + b   | factor (numeric) | two main crossed effects    |                       |
+| a * b   | factor           | idem including interaction  | 1 + a + b + a:b       |
+| a / b   | factor           | nested relationship         | 1 + a + b + a %in% b  |
+
+## R's formula and data analysis
+
+Most of the time, the same formula can be used to perform several 'data steps' ([tidying](http://vita.had.co.nz/papers/tidy-data.pdf) and [summarizing](http://biostat.mc.vanderbilt.edu/wiki/Main/Hmisc) data, [plotting](http://dsarkar.fhcrc.org/lattice-lab/latticeLab.pdf), or [reporting](http://yihui.name/knitr/)), but it is also the core element of many statistical models in R (linear and generalized linear models, decision trees, partitioning methods, etc.).  
+
+<center><strong>Split -- Apply -- Combine</strong></center>
+
+> (...) break up a big problem into manageable pieces, operate on each piece independently and then put all the pieces back together." `r citep(bib["wickham11"])`  
+
+See the [plyr](http://plyr.had.co.nz/) or [dplyr](https://github.com/hadley/dplyr) packages.
+
+---
+
+![sac](./img/split_apply_combine.png)
+
+## Aggregation of data
+
+```{r}
+grp <- gl(n = 4, k = 5, labels = letters[1:4])
+spl <- split(x, grp)        # split x by levels of grp
+apl <- lapply(spl, mean)    # apply mean() to each split 
+cbn <- rbind(x = apl)       # combine the means
+cbn
+```
+
+```{r}
+## shorter version (other than `by()`, `tapply()`, or `ave()`):
+aggregate(x ~ grp, FUN=mean)
+```
+
+# The analysis of variance
+
+## One-way ANOVA
+
+Let $y_{ij}$ be the $j\text{th}$ observation in group $i$ (factor
+$A$, with $a$ levels). An **effect model** can be written as
+
+$$ y_{ij} = \mu + \alpha_i + \varepsilon_{ij}, $$
+
+where $\mu$ stands for the overall (grand) mean, $\alpha_i$ is the effect of group or treatment $i$ ($i=1,\dots,a$), and $\varepsilon_{ij}\sim \mathcal{N}(0,\sigma^2)$ reflects random error. The following restriction is usually considered: 
+$\sum_{i=1}^a\alpha_i=0$. 
+
+The **null hypothesis** reads: $H_0:\alpha_1=\alpha_2=\dots=\alpha_a$. It can be tested with an F-test with $a-1$ et $N-a$ degrees of freedom. 
+
+## The big picture
+
+Each observation can be seen as a deviation from its group mean, $y_{ij}=\bar y_i+\varepsilon_{ij}$. Then, the whole variability can be expressed as follows:
+
+$$\underbrace{(y_{ij}-\bar
+y)}_{\text{total}}=\underbrace{(\bar y_{i\phantom{j}}\hskip-.5ex-\bar
+y)}_{\text{group}} + \underbrace{(y_{ij}-\bar y_i)}_{\text{residuals}}.$$
+
+Hence the term: **decomposition of variance**.
+
+---
+
+![anovadecomp](./img/fig-anova2_50pct.png)
+
+## Assumptions, caveats, etc.
+
+- This is an **omnibus test** for which the alternative hypothesis reads $\exists i,j\mid \alpha_i\neq\alpha_j,\: i, j=1,\dots,a\, (i\neq j)$. If the result is significant, it doesn't tell us which pairs of means really differ.
+- Beside independence of observations, this model assumes that **variances are equal in each population** (which is hard to assess with formal tests) and that residuals are approximately normally distributed.
+- As always, a statistically significant result does not necessarily mean an interesting result from a practical point of view: We need to provide a summary of **raw or standardized effects**.
+
+
+## Different scenarios
+
+![anova](./img/fig-anova.png)
+
+
+# References
+
+## References {.smaller}
+
+```{r, echo=FALSE, results='asis'}
+bibliography()
+```
+
