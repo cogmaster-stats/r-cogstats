@@ -1,0 +1,176 @@
+---
+title: "Analysis of variance ➋"
+author: "Christophe Lalanne"
+date: "November 4, 2014"
+output:
+  ioslides_presentation:
+    css: style.css
+---
+  
+  ```{r, include=FALSE}
+library(knitr)
+library(ascii)
+library(knitcitations)
+#cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG", dev.args = list(bg = 'transparent'))
+options(reindent.spaces=2)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(strip.background = list(col = "transparent"), 
+                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                plot.line = list(lwd = 2, col = my.col[1]),
+                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                superpose.line = list(lwd = 2, col = my.col),
+                box.rectangle = list(col = "gray60"),
+                box.umbrella = list(col = "gray60"),
+#                box.dot = list(col = my.col),
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+# Synopsis
+
+---
+  
+> The analysis of variance is not a mathematical theorem, but rather a convenient method of arranging the arithmetic. Ronald Fisher (1890-1962)
+
+<br /><br /><br />
+  
+<center>
+**design of experiments • R data structure • split-apply-combine • one-way ANOVA**
+</center>
+  
+<br /><br /><br />
+**Lectures:** OpenIntro Statistics, 4.2, 5.2, 5.5.
+
+# One-way ANOVA
+
+## Recap
+
+We are interested in assessing whether several groups differ with respect to their mean. We use an omnibus Fisher-Snedecor F-test to test the null hypothesis that all group means are equal, assuming that group variances are identical in the population (homoskedasticity) and that the normality assumption holds. The alternative hypothesis is that at least one pair of means is different at a fixed $\alpha=0.05$ level.
+
+## Application
+
+Effect of different sugars on length of pea sections grown in tissue culture with auxin present. `r citep(bib["sokal95"])`
+
+```{r, echo=FALSE, warning=FALSE, results='asis'}
+peas <- read.table("../data/peas.dat", header = TRUE)
+print(ascii(head(peas, 6), digits = 0, align = "c"), type = "pandoc")
+```
+
+---
+
+### The data
+
+- Response variable: length (in ocular units) of pea sections.
+- Explanatory variable (factor, group, predictor): treatment (control, 2% glucose, 2% fructose, 1% glucose + 1% fructose, 2% sucrose).
+
+```{r}
+head(peas, n = 3)
+```
+
+---
+
+### Reshaping data
+
+```{r, message=FALSE, warning=FALSE}
+library(reshape2)
+peas.melted <- melt(peas, value.name = "length", 
+                    variable.name = "treatment")
+head(peas.melted, n = 3)
+```
+
+---
+
+### Summary statistics
+
+To compute group means and SDs, we can use `aggregate()` two times, or write a little helper function.
+
+```{r}
+f <- function(x, digits = 1) 
+  round(c(mean = mean(x), sd = sd(x)), digits = digits)
+aggregate(length ~ treatment, data = peas.melted, f)
+```
+
+**Note:** `aggregate()` does not handle multiple output correctly (check the dimension of the returned object), but it is ok for printing on the console.
+
+---
+
+### Graphical display
+
+Here, the idea is to show the distribution of the response variable in each group using **box-and-whiskers charts**. 
+
+```{r, echo=FALSE, fig.width=8, fig.height=4, fig.align="center"}
+bwplot(length ~ treatment, data = peas.melted,
+       panel=function(x, y, ...) {
+         panel.grid(v = -1, h = 0)
+         panel.bwplot(x, y, pch = "|", lwd = 1.5, ...)
+         panel.xyplot(jitter(as.numeric(x), amount = .05), y, alpha = .5, col = my.col[x], ...)
+       })
+```
+
+---
+
+### One-way ANOVA
+
+There are 5 groups of **independant statistical units**, and it looks like variance are approximately comparable in all but the Control group. The relation between the two variables can be written as `length ~ treatment`.
+
+```{r}
+mod <- aov(length ~ treatment, data = peas.melted)
+summary(mod)
+```
+
+- F = 269.33/5.46 = (1077.3/4) / (245.5/45)
+- p = `pf(49.37, 4, 45, lower.tail = FALSE)`
+
+---
+
+### One-way ANOVA (Con't)
+
+A table of effects can be obtained using:
+```{r}
+model.tables(mod)
+```
+
+This is the same as:
+```{r, eval=FALSE}
+aggregate(length ~ treatment, peas.melted, mean)$length - 
+  mean(peas.melted$length)
+```
+
+---
+
+### Model fit = data + residual
+
+```{r}
+d <- cbind.data.frame(peas.melted, 
+                      fit = fitted(mod), 
+                      residual = resid(mod))
+res <- aggregate(.  ~ treatment, data=d, mean)
+res$effect <- res$fit - mean(peas.melted$length)
+res
+```
+
+
+
+# References
+
+## References {.smaller}
+
+```{r, echo=FALSE, results='asis'}
+bibliography()
+```
+
+
