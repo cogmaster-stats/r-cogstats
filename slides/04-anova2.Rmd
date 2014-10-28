@@ -49,17 +49,17 @@ set.seed(101)
 <br /><br /><br />
   
 <center>
-**design of experiments • R data structure • split-apply-combine • one-way ANOVA**
+**one- and two-way ANOVA • multiple comparisons • effect size**
 </center>
   
-<br /><br /><br />
-**Lectures:** OpenIntro Statistics, 4.2, 5.2, 5.5.
 
 # One-way ANOVA
 
-## Recap
+## Summary
 
 We are interested in assessing whether several groups differ with respect to their mean. We use an omnibus Fisher-Snedecor F-test to test the null hypothesis that all group means are equal, assuming that group variances are identical in the population (homoskedasticity) and that the normality assumption holds. The alternative hypothesis is that at least one pair of means is different at a fixed $\alpha=0.05$ level.
+
+![anova](./img/fig-anova_50pct.png)
 
 ## Application
 
@@ -74,8 +74,8 @@ print(ascii(head(peas, 6), digits = 0, align = "c"), type = "pandoc")
 
 ### The data
 
-- Response variable: length (in ocular units) of pea sections.
-- Explanatory variable (factor, group, predictor): treatment (control, 2% glucose, 2% fructose, 1% glucose + 1% fructose, 2% sucrose).
+- **Response** variable: length (in ocular units) of pea sections.
+- **Explanatory** variable (factor, group, predictor): treatment (control, 2% glucose, 2% fructose, 1% glucose + 1% fructose, 2% sucrose).
 
 ```{r}
 head(peas, n = 3)
@@ -87,10 +87,12 @@ head(peas, n = 3)
 
 ```{r, message=FALSE, warning=FALSE}
 library(reshape2)
-peas.melted <- melt(peas, value.name = "length", 
-                    variable.name = "treatment")
-head(peas.melted, n = 3)
+peas.m <- melt(peas, value.name = "length", 
+               variable.name = "treatment")
+head(peas.m, n = 3)
 ```
+
+This way, we can express relation like `length ~ treatment`.
 
 ---
 
@@ -101,7 +103,7 @@ To compute group means and SDs, we can use `aggregate()` two times, or write a l
 ```{r}
 f <- function(x, digits = 1) 
   round(c(mean = mean(x), sd = sd(x)), digits = digits)
-aggregate(length ~ treatment, data = peas.melted, f)
+aggregate(length ~ treatment, data = peas.m, f)
 ```
 
 **Note:** `aggregate()` does not handle multiple output correctly (check the dimension of the returned object), but it is ok for printing on the console.
@@ -113,7 +115,7 @@ aggregate(length ~ treatment, data = peas.melted, f)
 Here, the idea is to show the distribution of the response variable in each group using **box-and-whiskers charts**. 
 
 ```{r, echo=FALSE, fig.width=8, fig.height=4, fig.align="center"}
-bwplot(length ~ treatment, data = peas.melted,
+bwplot(length ~ treatment, data = peas.m,
        panel=function(x, y, ...) {
          panel.grid(v = -1, h = 0)
          panel.bwplot(x, y, pch = "|", lwd = 1.5, ...)
@@ -125,19 +127,20 @@ bwplot(length ~ treatment, data = peas.melted,
 
 ### One-way ANOVA
 
-There are 5 groups of **independant statistical units**, and it looks like variance are approximately comparable in all but the Control group. The relation between the two variables can be written as `length ~ treatment`.
+There are 5 groups of **independant statistical units**, and it looks like variance are approximately comparable in all but the Control group. 
 
 ```{r}
-mod <- aov(length ~ treatment, data = peas.melted)
+mod <- aov(length ~ treatment, data = peas.m)
 summary(mod)
 ```
 
 - F = 269.33/5.46 = (1077.3/4) / (245.5/45)
+- DF = (5-1) and (50-5)
 - p = `pf(49.37, 4, 45, lower.tail = FALSE)`
 
 ---
 
-### One-way ANOVA (Con't)
+The model reads: $y_{ij} = \mu + \alpha_i + \varepsilon_{ij}$, where the $\alpha_i$'s represent average group variations from the 'grand mean', $\mu$.
 
 A table of effects can be obtained using:
 ```{r}
@@ -146,8 +149,8 @@ model.tables(mod)
 
 This is the same as:
 ```{r, eval=FALSE}
-aggregate(length ~ treatment, peas.melted, mean)$length - 
-  mean(peas.melted$length)
+aggregate(length ~ treatment, peas.m, mean)$length - 
+  mean(peas.m$length)
 ```
 
 ---
@@ -155,15 +158,101 @@ aggregate(length ~ treatment, peas.melted, mean)$length -
 ### Model fit = data + residual
 
 ```{r}
-d <- cbind.data.frame(peas.melted, 
+d <- cbind.data.frame(peas.m, 
                       fit = fitted(mod), 
                       residual = resid(mod))
-res <- aggregate(.  ~ treatment, data=d, mean)
-res$effect <- res$fit - mean(peas.melted$length)
+res <- aggregate(. ~ treatment, data=d, mean)
+res$effect <- res$fit - mean(peas.m$length)
 res
 ```
 
+## How to interpret results
 
+If the F-test is significant, then we reject the null, $H_0:\alpha_1=\dots=\alpha_5$. We can conclude that the average length of pea sections differ between the groups (at least two of them), and that this difference is statistically significant at the 5% level ($p<0.001$).
+
+**What are the problems?**
+
+1. The ANOVA table and the F-test do not tell us which pair(s) of means really differ.
+2. The F-test is not helpful to quantify the size of the observed effect.
+3. The validity of the F-test relies on two main assumptions: homosckedasticity and normality.
+
+---
+
+**Solutions:**
+
+1. We need to carry out some kind of *post-hoc* multiple comparisons.
+
+    ```{r, eval=FALSE}
+    with(peas.m, pairwise.t.test(length, treatment, p.adj = "bonf"))
+    ```
+    
+2. The ratio SS(effect) / SS(effect+residual) reflects the proportion of variance accounted for by the factor of interest. 
+
+    ```{r, eval=FALSE}
+    summary(mod)[[1]][["Sum Sq"]]
+    ```
+
+    It is also possible to get 95% CI for such effect size `r citep(bib[c("Steiger:2004aa","Nakagawa:2007aa")])`, see the [MBESS](http://cran.r-project.org/web/packages/MBESS/index.html) package.
+
+
+3. Formal tests of hypothesis (e.g., Bartlett and Levene tests) can be used, but it is better to verify that those assumptions are met based on some graphics (boxplot and QQ-plot). Or we can make use of a non-parametric test ([Kruskal-Wallis ANOVA](http://en.wikipedia.org/wiki/Kruskal–Wallis_one-way_analysis_of_variance)), or the same parametric test but some correction `r citep(bib["welch51"])` (`oneway.test()`).
+
+# Two-way ANOVA
+
+## From one to two factors 
+
+Instead of working with only one factor and a single working hypothesis to test, we might want to study:
+
+1. The effect of one factor, accounting for the effect of another (known) factor.
+2. The separate effect of two factors.
+3. The joint effect of two factors.
+
+This raises several questions, notably the effect of one factor can be different depending on the levels of the other factor `r citep(bib[c("sokal95","montgomery12")])`.
+
+## The model
+
+Let $y_{ijk}$ be the $k\text{th}$ observation for level $i$ of factor $A$
+($i=1,\dots,a$) and level $j$ of factor $B$ ($j=1,\dots,b$). The full model can be written as follows:
+
+$$ y_{ijk} = \mu + \alpha_i + \beta_j + \gamma_{ij} + \varepsilon_{ijk}, $$
+
+where $\mu$ is the overall mean, $\alpha_i$ ($\beta_j$) is the deviation of the $a$ ($b$) means from the overall mean,
+$\gamma_{ij}$ is the deviation of the $A\times B$ treatments from $\mu$, and $\varepsilon_{ijk}\sim
+{\cal N}(0,\sigma^2)$ is the residual term.
+
+The $\alpha_i$ et $\beta_j$ are called **main effects**,
+and $\gamma_{ij}$ is the **interaction effect**. 
+
+## Null hypothesis testing
+
+Null hypotheses associated to the full factorial design are given below:
+
+- $H_0^A:\, \alpha_1=\alpha_2=\dots=\alpha_a$ (a-1 DF), No effect of A
+- $H_0^B:\, \beta_1=\beta_2=\dots=\beta_b$ (b-1 DF), No effect of B
+- $H_0^{AB}:\, \gamma_{11}=\gamma_{13}=\dots=\gamma_{ab}$ ((a-1)(b-1) DF), No interaction between A and B
+
+The ratio of Mean Squares corresponding to each factor and that of the residuals can be tested with Fisher-Snedecor F-tests.
+
+## Interaction between factors
+
+![anova](./img/fig-interaction_75pct.png)
+
+## What to do with the interaction
+
+If the interaction is significant, this means that the effect of the first factor depends on the levels of the second factor. In other words, there is no **simple effect** for the first factor, and we need to study its effect for each level of the second factor. If the interaction is not statistically significant, then we can remove this term from the model if it was not of primary interest, and refit the model.
+
+Often times, the interaction term is the effect we are interested in. But we need to describe the direction and magnitude of this effect carefully. **Graphical displays** are useful, but be careful with error bars `r citep(bib[c("Cumming:2005aa", "Masson:2003aa")])`!
+
+Finally, **why a two-way ANOVA rather than two one-way ANOVAs?**
+
+Because of [Simpson's paradox](http://en.wikipedia.org/wiki/Simpson%27s_paradox) and biased estimates of the residual.
+
+## R commands
+
+The main commands are:
+`aggregate()`, `aov()`, `summary.aov()`, `model.tables()`, `interaction.plot()`, `plot.design()`.
+
+See **Lab 3 : Analysis of variance with R** for an application of two-way ANOVA and extended discussion.
 
 # References
 
