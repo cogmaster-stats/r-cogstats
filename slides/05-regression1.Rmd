@@ -1,7 +1,7 @@
 ---
 title: "Regression modeling ➊"
 author: "Christophe Lalanne"
-date: "November 11, 2014"
+date: "November 18, 2014"
 output:
   ioslides_presentation:
     css: style.css
