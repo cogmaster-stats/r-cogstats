@@ -1,0 +1,433 @@
+---
+title: "ANOVA and the linear model"
+author: "Christophe Lalanne"
+date: "November 25, 2014"
+output:
+  ioslides_presentation:
+    css: style.css
+---
+  
+```{r, include=FALSE}
+library(knitr)
+library(ascii)
+library(knitcitations)
+#cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG", dev.args = list(bg = 'transparent'))
+options(reindent.spaces=2)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(strip.background = list(col = "transparent"), 
+                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                plot.line = list(lwd = 2, col = my.col[1]),
+                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                superpose.line = list(lwd = 2, col = my.col),
+                box.rectangle = list(col = "gray60"),
+                box.umbrella = list(col = "gray60"),
+#                box.dot = list(col = my.col),
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+# Synopsis
+
+---
+
+These slides are intended to provide some complementary material to multiple comparisons in ANOVA modeling, and the analysis of correlated using mixed-effect models.
+
+<br /><br /><br />
+  
+<center>
+**orthogonal contrasts • post-hoc comparisons • unbalanced data paired samples • intraclass correlation • variance components • random effects**
+</center>
+
+# ANOVA and multiple testing
+
+> The analysis of variance is not a mathematical theorem, but rather a convenient method of arranging the arithmetic. Ronald Fisher (1890-1962)
+
+
+## Back to the ANOVA model
+
+One-way ANOVA:
+$$
+y_{ij} = \mu + \alpha_i + \varepsilon_{ij},\quad \varepsilon_{ij}\sim {\cal N}(0,\sigma^2).
+$$
+
+Two-way ANOVA
+$$
+y_{ijk} = \mu + \alpha_i + \beta_j + \gamma_{ij} + \varepsilon_{ijk},\quad \varepsilon_{ijk}\sim {\cal N}(0,\sigma^2).
+$$
+
+When a factor has more than 2 levels, or when the interaction between the two factors is of interest, this involves *post-hoc* **multiple comparisons** of pairs of means.
+
+## Orthogonal contrasts
+
+With $k$ samples (treatments), we can define $k-1$ orthogonal contrasts
+$$
+\phi = \sum_{i=1}^kc_i\overline{x}_i,\quad \sum_ic_i=0\; \text{et}\; \phi_u^t\phi_v^{\phantom{t}}=0
+$$
+and use as a test statistic $\frac{\phi}{s_{\phi}}$, where $s_{\phi}^2=s^2\sum_i\frac{c_i^2}{n_i}$, which is distributed as a Student's t.
+
+- `contr.treatment`: treatment contrast (dummy coding), $k-1$ last levels compared to baseline category
+- `contr.sum`: deviation contrast, $k-1$ first levels compared to the mean of the group means
+- `contr.poly`: polynomial contrast (factor with ordered levels only), to test for linear, quadratic, cublic trend.
+
+---
+
+```{r}
+contr.treatment(levels(grp <- gl(3, 2, 36, c("A","B","C"))))
+y <- 0.5 * as.numeric(grp) + rnorm(36);
+coef(lm(y ~ grp))
+coef(lm(y ~ grp, contrasts = list(grp = "contr.sum")))
+```
+
+## Application
+
+Consider a factor A with 4 levels and 8 observations per group.
+
+```{r}
+set.seed(101)
+n <- 8
+A <- gl(4, n, 4*n, labels = paste("a", 1:4, sep = ""))
+y <- 0.5 * as.numeric(A) + rnorm(4*n)
+d <- data.frame(y, A)
+print(mm <- tapply(y, A, mean))
+```
+
+One-way ANOVA model:  
+$H_0:\mu_1=\mu_2=\mu_3=\mu_4$, SS=11.38, F(3,28)=6.036 (p=0.00264).  
+Let us assume that we are interested in the following comparisons: $H_0^{(1)}:(\mu_1+\mu_2)/2=(\mu_3+\mu_4)/2$, $H_0^{(2)}:\mu_1=\mu_2$ and $H_0^{(3)}:\mu_3=\mu_4$.
+
+---
+
+```{r}
+cm <- cbind(c(-1,-1,1,1), c(-1,1,0,0), c(0,0,-1,1))
+contrasts(d$A) <- cm
+summary(lm(y ~ A, data = d))
+```
+
+---
+
+```{r, message = FALSE}
+as.numeric((t(cm) %*% mm) / c(4, 2, 2))
+library(multcomp)
+summary(glht(aov(y ~ A, d), linfct = mcp(A = c("a1 - a2 = 0"))))
+```
+
+## Multiples comparisons
+
+With $k$ samples, there are $k(k-1)/2$ pairs of means to compare. With $k=4$ and  $\alpha=0.05$, the family wise error rate (FWER) becomes $1-(1-0.05)^6=0.265$, assuming tests are independent.
+
+There are two general (and conservative) strategies to control the inflation of Type I errors: `r citep(bib[c("christensen02")])`
+
+- consider a **different test statistic** (e.g., HSD Tukey)
+- consider a **different nominal Type I error** (e.g., Bonferroni correction)
+
+```{r}
+p.adjust.methods
+```
+
+## Application
+
+Usually, Bonferroni correction is applied to unplanned comparisons, and it can be restricted to a subset of all possible tests.
+```{r}
+pairwise.t.test(y, A, p.adjust.method = "bonf")
+```
+
+---
+
+Tukey HSD tests can be used following a significant ANOVA, and they are applied to all pairs of means.
+```{r}
+TukeyHSD(aov(y ~ A, d))
+```
+
+## Unbalanced data
+
+When the number of observations differ in each treatment, we are more concerned with **how to compute sum of squares** `r citep(bib[c("herr86")])`.
+
+For two factors, A and B:
+
+- Type I (default): SS($A$), SS($B|A$), then SS($AB|B$, $A$)
+- Type II: SS($A|B$), then SS($B|A$) (no interaction)
+- Type III: SS($A|B$, $AB$), SS($B|A$, $AB$) (interpret each main effect after having accounted for other main effects and the interaction)
+
+See also, Venables, W.N. (2000). [Exegeses on Linear Models](http://www.stats.ox.ac.uk/pub/MASS3/Exegeses.pdf). Paper presented to the S-PLUS User’s Conference Washington, DC, 8-9th October, 1998. (§ 5.1)
+
+# Analysis of correlated data
+
+> Evelyn Hall: I would like to know how (if) I can extract some of the information from the summary of my nlme.  
+> Simon Blomberg: This is R. There is no if. Only how.  
+—Evelyn Hall and Simon ‘Yoda’ Blomberg  
+R-help (April 2005)
+
+## Mixed-effects models
+
+Compared to standard linear models, mixed-effect models further include random-effect terms that allow to reflect correlation between statistical units. Such **clustered data** may arise as the result of grouping of individuals (e.g., students nested in schools), within-unit correlation (e.g., longitudinal data), or a mix thereof (e.g., performance over time for different groups of subjects) `r citep(bib[c("mcculloch01","lindsey99","gelman07")])`.
+
+This approach belongs to **conditional models**, as opposed to **marginal** models, where we are interested in modeling population-averaged effects by assuming a working (within-unit) correlation matrix. ME models are not restricted to a single level of clustering, and they give predicted values for each cluster or level in the hierarchy.
+
+## Fixed vs. random effects
+
+There seems to be little agreement about [what fixed and random effects really means](http://bit.ly/Jd0EiZ) `r citep(bib["gelman05"])`.  
+
+As a general decision workflow, we can ask whether we are interested in just estimating parameters for the random-effect terms, or get predictions at the individual level.
+
+---
+
+![randomfixed](./img/fig-random_vs_fixed_30pct.png)
+
+## Analysis of paired data
+
+The famous 'sleep' study is a good illustration of the importance of using pairing information when available.
+
+```{r, echo=c(2,4)}
+pp <- function(r, digits = 2) 
+  paste0("t(", r[[2]], ")=", round(r[[1]], digits = digits), 
+         ", p=", round(r[[3]], digits = 5))
+a <- t.test(extra ~ group, data = sleep, var.equal = TRUE)
+pp(a)
+b <- t.test(extra ~ group, data = sleep, paired = TRUE)
+pp(b)
+```
+
+Generally, ignoring within-unit correlation results in a **less powerful test**: Considering that $\text{Cov}(X_1,X_2)=0$ amounts to over-estimate variance of the differences, since $\text{Cov}(X_1,X_2)$ will generally be positive.
+ 
+---
+
+```{r, echo=FALSE, fig.height=5, fig.align="center"}
+xyplot(extra ~ group, data = sleep, groups = ID, col = "cornflowerblue", type = "l")
+```
+
+A positive covariance in this case means that subjects having higher values on the first level will also have higher values on the second level. 
+
+## Analysis of repeated measures
+
+Lack of digestive enzymes in the intestine can cause bowel absorption problems, with excess fat in the feces. Pancreatic enzyme supplements can be given to ameliorate the problem `r citep(bib["vittinghoff05"])`.
+```{r, echo=FALSE, warning=FALSE, results='asis'}
+d <- read.table("../data/pilltype.dat", header = TRUE)
+print(ascii(d), type = "pandoc")
+```
+
+## R's wide and long format
+
+**Wide format:** Each level in a separate column.
+
+```{r}
+d <- read.table("../data/pilltype.dat", header = TRUE)
+head(d)
+```
+
+---
+
+**Long format:** All levels in the same column.
+
+Note that we often need to keep an 'ID' variable to identify subjects and repeated measurements.
+
+```{r}
+library(reshape2)
+head(fat <- melt(d, id.vars = "ID", 
+                 variable.name = "pilltype", 
+                 value.name = "fecfat"), n = 7)
+```
+
+## Variance components
+
+There is only one predictor, Pill type, which is attached to subject and period of time (subsumed under the repeated administration of the different treatment).
+
+Here are different ways of decomposing the total variance:
+
+- **One-way ANOVA:**  
+`aov(fecfat ~ pilltype, data = fat)`
+- **Two-way ANOVA:**  
+`aov(fecfat ~ pilltype + subject, data = fat)`
+- **RM ANOVA:**  
+`aov(fecfat ~ pilltype + Error(subject), data = fat)`
+
+
+---
+
+
+Source      DF      SS       MS          M1                    M2*/M3
+---------   ---   ------   ------   ----------------------   ---------------------
+pilltype     3     2009     669.5   669.5/359.7 (p=0.17 )    669.5/107.0 (p=0.01)
+subject      5     5588    1117.7    –                       1117.7/107.0 (p=0.00*)
+residuals   15     1605     107.0    –                       –
+
+---
+
+- The first model, which assumes **independent observations**, does not remove variability between subjects (about 77.8% of residual variance). 
+
+- The last two models incorporate **subject-specific effects**:
+
+$$ 
+y_{ij} = \mu + \text{subject}_i + \text{pilltype}_j +
+\varepsilon_{ij},\quad \varepsilon_{ij}\sim{\cal N}(0,\sigma_{\varepsilon}^2)
+$$
+
+- In the third model, we further assume $\text{subject}_i\sim{\cal N}(0,\sigma_{s}^2)$,
+independent of $\varepsilon_{ij}$.
+
+---
+
+The inclusion of a random effect specific to subjects allows to model several types of **within-unit correlation** at the level of the outcome.
+What is the correlation between measurements taken from the same individual? We know that
+$$
+\text{Cor}(y_{ij},y_{ik})=\frac{\text{Cov}(y_{ij},y_{ik})}{\sqrt{\text{Var}(y_{ij})}\sqrt{\text{Var}(y_{ik})}}.
+$$
+Because $\mu$ and $pilltype$ are fixed, and $\varepsilon_{ij}\perp
+subject_i$, we have
+$$
+\begin{align}
+\text{Cov}(y_{ij},y_{ik}) &= \text{Cov}(\text{subject}_i,\text{subject}_i)\\
+&= \text{Var}(\text{subject}_i) \\
+&= \sigma_{s}^2,
+\end{align}
+$$
+and variance components follow from $\text{Var}(y_{ij})=\text{Var}(\text{subject}_i)+\text{Var}(\varepsilon_{ij})=\sigma_{s}^2+\sigma_{\varepsilon}^2$, which is **assumed to hold for all observations**.
+
+---
+
+So that, we have
+$$
+\text{Cor}(y_{ij},y_{ik})=\frac{\sigma_{s}^2}{\sigma_{s}^2+\sigma_{\varepsilon}^2}
+$$
+which is the proportion of the total variance that is due to subjects. It is also known as the **intraclass correlation**, $\rho$, and it measures the closeness of observations on different subjects (or within-cluster similarity).
+
+- Subject-to-subject variability simultaneously raises or lowers all the observations on a subject.
+- The variance-covariance structure in the above model is called [compound symmetry](http://homepages.gold.ac.uk/aphome/spheric.html).
+
+## Estimating $\rho$
+
+Observations on the same subject are modeled as correlated through their shared random subject effect. Using the **random intercept model** defined above, we can estimate $\rho$ as follows: (default method is known as [REML](http://goo.gl/qQZkVz))
+
+First, we fit a random intercept model by specifying which variable is used to identify subjects (`ID`):
+
+```{r}
+library(nlme)
+lme.fit <- lme(fecfat ~ pilltype, data = fat, random = ~ 1 | ID)
+anova(lme.fit)
+```
+
+---
+
+```{r}
+intervals(lme.fit)
+```
+
+---
+
+We want to compute
+$$
+\text{Cor}(y_{ij},y_{ik})=\frac{\sigma_{s}^2}{\sigma_{s}^2+\sigma_{\varepsilon}^2}.
+$$
+
+From the preceding output, we can extract everything we need using `VarCorr`:
+
+```{r}
+sigma.s <- as.numeric(VarCorr(lme.fit)[1,2])
+sigma.eps <- as.numeric(VarCorr(lme.fit)[2,2])
+sigma.s^2 / (sigma.s^2+sigma.eps^2)
+```
+
+
+---
+
+From the **ANOVA table**, we can also compute $\hat\rho$:
+```{r}
+ms <- anova(lm(fecfat ~ pilltype + ID, data = fat))[[3]]
+vs <- (ms[2]-ms[3]) / nlevels(fat$pilltype)
+vr <- ms[3]                                
+vs / (vs+vr)
+```
+
+---
+
+We could also use **Generalized Least Squares**, imposing compound symmetry:
+```{r}
+gls.fit <- gls(fecfat ~ pilltype, data = fat, 
+               corr = corCompSymm(form= ~ 1 | ID))
+anova(gls.fit)
+## intervals(gls.fit) 
+```
+
+We would get $\hat\rho = 0.7025074$.
+
+## The final picture
+
+The imposed variance-covariance structure is clearly reflected in the predicted values.
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, fig.align='center'}
+library(gridExtra)
+fat$pred <- predict(lme.fit)
+p1 <- xyplot(fecfat ~ reorder(pilltype, fecfat), data=fat, groups=ID,
+             type="a", xlab="Pill type", ylab="Fecal fat (g/day)",
+             scales=list(y=list(at=seq(0, 80, by=20))))
+p2 <- xyplot(pred ~ reorder(pilltype, fecfat), data=fat, groups=ID,
+             type="a", xlab="Pill type", ylab="Predicted fecal fat (g/day)",
+             scales=list(y=list(at=seq(0, 80, by=20))))
+grid.arrange(p1, p2, nrow=1)
+```
+
+## Model diagnostic
+
+Inspection of the **distribution of the residuals** and **residuals vs. fitted values** plots are useful diagnostic tools. It is also interesting to examine the **distribution of random effects** (intercepts and/or slopes).
+
+```{r, echo=FALSE, fig.height=3, fig.width=6, fig.align='center'}
+p3 <- qqmath(~resid(lme.fit), xlab="Standard normal quantiles",
+             ylab="Residuals", prepanel = prepanel.qqmathline,
+             panel=function(x, ...) {
+               panel.qqmathline(x, lty=2, col="grey30", ...)
+               panel.qqmath(x, col="cornflowerblue", pch=19, ...) })
+p4 <- xyplot(resid(lme.fit) ~ fitted(lme.fit), xlab="Fitted values",
+             ylab="Residuals", col="cornflowerblue", pch=19,
+             panel=function(...) {
+               panel.xyplot(...)
+               panel.abline(h=0, lty=2, col="grey30")})
+grid.arrange(p3, p4, nrow=1)
+```
+
+## Some remarks
+
+- For a **balanced design**, the residual variance for the within-subject ANOVA and random-intercept model will be identical (the REML estimator is equivalent to ANOVA MSs). Likewise, Pill type effects and overall mean are identical.
+- Testing the **significance of fixed effects** can be done using ANOVA (F-value) or by model comparison. In the latter case, we need to fit model by ML method (and not REML) because models will include differents fixed effects.
+
+```{r, eval=2:4}
+anova(lme.fit)
+lme.fit <- update(lme.fit, method="ML")  
+lme.fit0 <- update(lme.fit, fixed= . ~ - pilltype)
+anova(lme.fit, lme.fit0)
+```
+
+## Variance-covariance structure
+
+**Other VC matrices** can be choosen, depending on study design `r citep(bib["pinheiro00"])`,
+e.g., Unstructured, First-order auto-regressive, Band-diagonal, AR(1) with heterogeneous variance. 
+
+The **random-intercept model** ensures that the VC structure will be constrained as desired. With repeated measures ANOVA, a common strategy is to use Greenhouse-Geisser or Huynh-Feldt correction to correct for sphericity violations, or to rely on MANOVA which is less powerful, e.g. `r citep(bib[c("abdi10","zar98")])`.
+
+<br><br>
+
+<center>
+Mixed-effect models are more flexible as they allow to make inference on the correlation structure, and to perform model comparisons.
+</center>
+
+
+# References
+
+## References {.smaller}
+
+```{r, echo=FALSE, results='asis'}
+bibliography()
+```
+
