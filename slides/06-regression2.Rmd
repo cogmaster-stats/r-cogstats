@@ -7,7 +7,7 @@ output:
     css: style.css
 ---
   
-  ```{r, include=FALSE}
+```{r, include=FALSE}
 library(knitr)
 library(ascii)
 library(knitcitations)
