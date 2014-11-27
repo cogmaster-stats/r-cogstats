@@ -1,0 +1,189 @@
+---
+title: "Categorical data and logistic regression"
+author: "Christophe Lalanne"
+date: "December 2, 2014"
+output:
+  ioslides_presentation:
+    css: style.css
+---
+  
+```{r, include=FALSE}
+library(knitr)
+library(ascii)
+library(knitcitations)
+#cite_options(tooltip=TRUE)
+bib <- read.bibtex("../refs.bib")
+library(Cairo)
+CairoFonts(
+  regular = "Fontin Sans:style=Regular",
+  bold = "Fontin Sans:style=Bold",
+  italic = "Fontin Sans:style=Italic",
+  bolditalic = "Fontin Sans:style=Bold Italic,BoldItalic"
+)
+opts_chunk$set(cache=TRUE, dev="CairoPNG", dev.args = list(bg = 'transparent'))
+options(reindent.spaces=2)
+library(latticeExtra)
+## https://github.com/jennybc/STAT545A
+my.col <- c('cornflowerblue', 'chartreuse3', 'darkgoldenrod1', 'peachpuff3',
+            'mediumorchid2', 'turquoise3', 'wheat4', 'slategray2')
+trellis.par.set(strip.background = list(col = "transparent"), 
+                plot.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                plot.line = list(lwd = 2, col = my.col[1]),
+                superpose.symbol = list(pch = 19, cex = 1.2, col = my.col),
+                superpose.line = list(lwd = 2, col = my.col),
+                box.rectangle = list(col = "gray60"),
+                box.umbrella = list(col = "gray60"),
+#                box.dot = list(col = my.col),
+                fontsize = list(text = 16, points = 8))
+set.seed(101)
+```
+
+
+
+# Synopsis
+
+---
+
+> citation
+
+<br /><br /><br />
+  
+<center>
+**contigency and square tables • chi-square test • odds-ratio • logistic regression**
+</center>
+
+# Analysis of categorical data
+
+## Association between two categorical variables
+
+To describe the assocation between two categorical variables, with I and J levels, we can build a two-way table of counts (or frequencies). Note that we generally need to know the **marginal distribution** of each variable (row and columns totals).
+
+A basic question that we may ask is whether the two variables are related in some way, which amounts to test the null hypothesis that **the two variables are independent**. 
+
+There are several tests available, depending on the kind of data and the type of hypothesis we are interested in `r citep(bib["bishop07"])`.
+
+## Two-way cross-classification table
+
+In the general case, a count or frequency table can be built as shown below. The $n_{i\cdot}$ ($i=1,\dots,I$) and $n_{\cdot j}$ ($j=1,\dots,J$) represent the marginal distributions of variables A and B. Note that if $I=J$, we call it a square table.
+
+![](./img/tab_contingency_60pct.png)
+
+## Measures of association
+
+## Illustration
+
+**Caffeine consumption and marital status** `r citep(bib["dalgaard08"])`.
+```{r}
+coffee <- matrix(c(652,1537,598,242,36,46,38,21,
+                   218,327,106,67), nrow = 3, byrow = TRUE)
+dimnames(coffee) <- list("marital status" = c("Married", "Prev. married", "Single"), 
+                         consumption = c("0", "1-150", "151-300", ">300"))
+coffee
+```
+
+---
+
+```{r}
+round(prop.table(coffee, margin = 1), digits = 2)  ## by row
+round(prop.table(coffee, margin = 2), digits = 2)  ## by column
+
+```
+
+---
+
+**Bar chart**  
+`barchart(table(...))`
+
+```{r, echo=FALSE, fig.height=4.5, fig.align='center'}
+library(latticeExtra)
+barchart(prop.table(coffee, 1) * 100, stack = FALSE, xlab = "Proportion (%)",
+         par.settings = custom.theme.2(), 
+         auto.key = list(space = "top", column = 4, cex = 1))
+```
+
+---
+
+**Dotplot**  
+`dotplot(count ~ A, groups = B)`
+
+```{r}
+library(reshape2)
+coffee.df <- melt(coffee, varnames = c("Status", "Caffeine"))
+```
+
+
+```{r, echo=FALSE, fig.height=4, fig.align='center'}
+dotplot(Status ~ value, data = coffee.df, type = "o",
+        groups = Caffeine, xlab = "Effectif",
+        par.settings = custom.theme.2(),
+        auto.key = list(x = .85, y = .95, cex = 1))
+```
+
+
+---
+
+```{r}
+chsq <- chisq.test(coffee)
+chsq
+chsq$residuals
+```
+
+
+
+# Logistic regression
+
+## Generalized linear models
+
+The theory of Generalized Linear Model encompasses a unified approach to regression models where a single response variable is assumed to follow a probability distribution fucntion from the **exponential family** `r citep(bib["nelder72"])`. This includes the following PDFs: Gaussian, Binomial, Poisson, Gamma, Inverse Gaussian, Geometric, and Negative Binomial.
+The idea is to **'relaxe' some of the assumptions of the linear model** such that the relationship between the response and the predictors remains linear. You may recall that in the case of linear regression, we usually relate the predictors to the expected value of the outcome like so:
+
+$$\mathbb{E}(y \mid x) = f(x; \beta),$$
+
+or, using matrix notation, 
+
+$$\mathbb{E}(y \mid x) = {\bf X}\beta.$$
+
+## From linear to logistic regression
+
+How can this be achieved with a logistic regression where individual responses are binary and follow a Bernoulli, or ${\cal B}(1;0.5)$, distribution? Moreover, a standard regression model could predict individual probabilities outside the $[0;1]$ interval.
+
+Some transformations, like $p'=\arcsin p$, have been proposed to allow the use of ANOVA with binary data `r citep(bib["zar98"])`. However, it is fairly easy to apply a logistic regression, see also `r citep(bib["dixon08"])`.
+
+---
+
+Considering the logit transformation of the probability of the event under consideration, $\pi(x)=\frac{e^{\beta_0+\beta_1x}}{1+e^{\beta_0+\beta_1x}}$, the logistic regression model is comparable to the linear case, i.e. it is additive in its effect terms. 
+
+In the simplest case (one predictor + an intercept term), we have: 
+
+$$g(x)=\ln\left(\frac{\pi(x)}{1-\pi(x)}\right)=\beta_0+\beta_1x.$$
+
+## Illustration
+
+**Prognostic study of risk factor associated with low birth infant weight** `r citep(bib["hosmer89"])`.
+
+```{r}
+data(birthwt, package = "MASS")
+birthwt <- within(birthwt, {
+  race <- factor(race, labels = c("White","Black","Other"))
+  smoke <- factor(smoke, labels = c("No","Yes"))
+  ui <- factor(ui, labels = c("No","Yes"))
+  ht <- factor(ht, labels = c("No","Yes"))
+})
+```
+
+---
+
+```{r, message=FALSE}
+library(Hmisc)
+summary(low ~ age + race, data = birthwt)
+```
+
+
+# References
+
+## References {.smaller}
+
+```{r, echo=FALSE, results='asis'}
+bibliography()
+```
+
