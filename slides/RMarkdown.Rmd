@@ -1,0 +1,148 @@
+---
+title: "Markdown and R"
+author: "Christophe Lalanne"
+date: "December 2, 2014"
+output:
+  ioslides_presentation:
+    css: style.css
+---
+
+# Markdown
+
+> Markdown is a text-to-HTML conversion tool for web writers. Markdown allows you to write using an easy-to-read, easy-to-write plain text format, then convert it to structurally valid XHTML (or HTML). -- John Gruber, 17 Dec 2004
+
+## A minimalistic markup language
+
+All tutorials in this course are written using Markdown, and they are available on the [GitHub repository](https://github.com/cogmaster-stats/r-cogstats).
+
+[Markdown](http://daringfireball.net/projects/markdown/) is a simple yet elegant and fast markup language. Other alternatives include [reStructuredText](http://docutils.sourceforge.net/rst.html) or [asciidoc](http://www.methods.co.nz/asciidoc/).
+
+Other than its dedicated website, there are many [cheat sheets](https://github.com/adam-p/markdown-here/wiki/Markdown-Here-Cheatsheet) available on the internet, and we will only highlight the main features of the Md syntax.
+
+There are other Md flavours, like [MultiMarkdown](http://fletcherpenney.net/multimarkdown/), and many text editors that support Md syntax and allow to generate HTML, PDF or MS Word document through [pandoc](http://johnmacfarlane.net/pandoc/).
+
+## Headers, lists, etc.
+
+Like in HTML or word processing system, there are several levels of headers, which are prefixed by one or more `#`:
+
+    # H1 level
+    ## H2 level
+    ### H3 level
+
+Unordered (`<ul>`) and ordered (`<ol>`) lists are specified using `*` or `-`, and numbers, respectively:
+
+    * item 1
+    * item 2
+
+    1. item 1
+    2. item 2
+
+---
+
+They can be nested together, with appropriate spaces and CR, e.g.:
+
+    1. item 1
+      
+      - item 1a
+      - item 1b
+
+    2. item 2
+      
+      - item 2a
+      - item 2b
+
+Line breaks are controlled by either a blank line (new paragraph, `<p>`) or a line ending with two spaces (`<br>`).
+
+## Code chunks
+
+Blocks of code (`<pre>`) or inline preformatted expression (`<pre>`) can be displayed in monospace font using paragraph indented using 4 spaces, or single back ticks, like in:
+
+    This is an R function `f <- function(x) sum(is.na(x))`.
+
+This is an R function `f <- function(x) sum(is.na(x))`. 
+
+The corresponding block would read
+
+    f <- function(x) sum(is.na(x))
+
+---
+
+It is also possible to use block delimited with three back ticks, with optional name for syntax highlighting. Here is an example using Python:
+
+```python
+from math import log
+
+phi = (1 + 5**0.5) / 2
+
+def fibinv(f):
+    if f < 2:
+        return f
+    return int(round(log(f * 5**0.5) / log(phi)))
+```
+
+
+## Images
+
+Images (PNG, JPG, etc.) can be displayed using the following syntax:
+
+    ![alt](file.png)
+
+**Example:**
+
+![Md](./img/md_12pct.png)
+
+Note that they will need to be resized beforehand.  
+You can use [ImageMagick](http://www.imagemagick.org) or [GraphicsMagick](http://www.graphicsmagick.org) for that.
+
+## Tables
+
+This is a little bit trickier as we have to use Md syntax to format Tables, with a bit of CSS to enhance their rendering on screen.
+
+A [sample Table](https://github.com/adam-p/markdown-here/wiki/Markdown-Here-Cheatsheet#tables) is given below:
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+<br><br>
+See also this [Markdown table generator](http://www.tablesgenerator.com/markdown_tables).
+
+## URLs
+
+External references (`<a href="">`) are provided using inline- or reference-style links:
+
+    [cogmaster-stats](https://github.com/cogmaster-stats/r-cogstats)
+    
+    [cogmaster-stats][1]
+    [1]: https://github.com/cogmaster-stats/r-cogstats
+
+
+[Inline links](http://stackoverflow.com/questions/5319754/cross-reference-named-anchor-in-markdown) (`<a name="">`) links are also available.
+
+# R Markdown
+
+> R Markdown is an authoring format that enables easy creation of dynamic documents, presentations, and reports from R. <http://rstudio.com>
+
+## What is R Markdown
+
+<center>
+R Markdown = Markdown syntax + dynamic R code
+</center>
+<br>
+
+The Md syntax remains the same, but code chunks can be evaluated, silently or not, and results can be printed when generating the final output.
+
+<code><pre>
+‛‛‛{r, eval = 2:3, echo = FALSE, fig.height = 5, fig.align='center'}
+set.seed(104)
+x <- rnorm(1e6)
+histogram(~ x)
+‛‛‛
+</pre></code>
+
+RStudio facilitates the use of Markdown when performing statistical analysis; see their [tutorial](http://rmarkdown.rstudio.com).
+
+There is a minimal template on GitHub, [template.Rmd](https://github.com/cogmaster-stats/r-cogstats/blob/master/projects/template.Rmd).
+
