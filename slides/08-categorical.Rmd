@@ -44,12 +44,12 @@ set.seed(101)
 
 ---
 
-> citation
+> Statistics is the grammar of science. Karl Pearson (1857-1936)
 
 <br /><br /><br />
   
 <center>
-**contigency and square tables • chi-square test • odds-ratio • logistic regression**
+**contingency and square tables • chi-square test • odds-ratio • logistic regression**
 </center>
 
 # Analysis of categorical data
@@ -68,7 +68,60 @@ In the general case, a count or frequency table can be built as shown below. The
 
 ![](./img/tab_contingency_60pct.png)
 
+## The chi-square test
+
+Pearson's chi-square test is used to compare **observed data** to **expected data**, that is data occuring under the null hypothesis of no association between two variables. Expected counts are given by the product of margins (if A and B are independant, P(A and B) = P(A) x P(B)). 
+
+Up to a constant, the chi-square statistic is the sum of squared differences between observed and expected data after some normalization:
+
+$$
+\Phi^2=\sum_{i=1}^I\sum_{j=1}^J\frac{(p_{ij}-p_{i\cdot}p_{\cdot j})^2}{p_{i\cdot}p_{\cdot j}}.
+$$
+
+Then, $\chi^2 = N\Phi^2$ is called the 'chi-squared' statistic and it follows a $\chi^2$ distribution with $(I-1)(J-1)$ degrees of freedom.
+
 ## Measures of association
+
+In the most general case, how can we define the association between two categorical variables in the 2-by-2 case?
+
+1. as a function of the cross-product of all cells (**odds-ratio**)
+2. as a correlation coefficient (**chi-square test**)
+
+Let us consider a two-way table (two binary variables):
+
+![](./img/tab_twoway_60pct.png)
+
+
+## The odds-ratio
+
+
+The odds-ratio is defined as 
+$$\alpha=\frac{p_{11}p_{22}}{p_{12}p_{21}},$$
+
+or, equivalently, $\alpha=\frac{p_{11}/p_{12}}{p_{21}/p_{22}}$, when row margins (e.g., exposure) are fixed (e.g., $p_{11}/p_{12}$ = probability of disease when exposed).
+
+This is a general measure of association, which is invariant after permutation of rows and columns.
+
+## The chi-square
+
+With binary variables, the previous formula for the 'chi-squared' statistic simplifies to
+$$
+\Phi^2=\sum_{i=1}^2\sum_{j=1}^2\frac{(p_{ij}-p_{i\cdot}p_{\cdot j})^2}{p_{i\cdot}p_{\cdot j}}=\frac{(p_{11}p_{22}-p_{21}p_{12})^2}{p_{1\cdot}p_{2\cdot}p_{\cdot 1}p_{\cdot 2}},
+$$
+
+which shows that it amounts to a simple correlation between two numerically-scored variables. 
+
+Indeed, considering 0/1 scores, we have
+
+$$
+\rho=\frac{p_{11}p_{22}-p_{21}p_{12}}{\sqrt{p_{1\cdot}p_{2\cdot}p_{\cdot
+1}p_{\cdot 2}}}=\frac{p_{22}-p_{2\cdot}p_{\cdot
+2}}{\sqrt{p_{1\cdot}p_{2\cdot}p_{\cdot 1}p_{\cdot 2}}},
+$$
+
+hence, $r^2=\chi^2/N$.
+
+
 
 ## Illustration
 
@@ -152,10 +205,29 @@ Some transformations, like $p'=\arcsin p$, have been proposed to allow the use o
 ---
 
 Considering the logit transformation of the probability of the event under consideration, $\pi(x)=\frac{e^{\beta_0+\beta_1x}}{1+e^{\beta_0+\beta_1x}}$, the logistic regression model is comparable to the linear case, i.e. it is additive in its effect terms. 
-
 In the simplest case (one predictor + an intercept term), we have: 
 
 $$g(x)=\ln\left(\frac{\pi(x)}{1-\pi(x)}\right)=\beta_0+\beta_1x.$$
+
+```{r, echo=FALSE, fig.height=3, fig.align='center'}
+set.seed(101)
+n <- 200
+x <- rnorm(n)
+a <- 1
+b <- -2
+p <- exp(a+b*x)/(1+exp(a+b*x))
+y <- ifelse(runif(n)>=p, 1, 0)
+pp <- predict(glm(y ~ x, family = binomial), type = "response")
+d <- data.frame(x, y, pp)
+d <- d[order(d$x),]
+xyplot(y ~ x,  data = d, xlab = "", ylab = "", 
+       panel = function(x, y, ...) {
+         panel.grid(h = -1, v = -1)
+         panel.xyplot(x, y, col = "cornflowerblue", alpha = .5)
+         panel.xyplot(x, d$pp, type = "l", col = "coral", lwd = 2)         
+       })
+```
+
 
 ## Illustration
 
@@ -163,19 +235,90 @@ $$g(x)=\ln\left(\frac{\pi(x)}{1-\pi(x)}\right)=\beta_0+\beta_1x.$$
 
 ```{r}
 data(birthwt, package = "MASS")
+yesno <- c("No","Yes")
 birthwt <- within(birthwt, {
   race <- factor(race, labels = c("White","Black","Other"))
-  smoke <- factor(smoke, labels = c("No","Yes"))
-  ui <- factor(ui, labels = c("No","Yes"))
-  ht <- factor(ht, labels = c("No","Yes"))
+  smoke <- factor(smoke, labels = yesno)
+  ui <- factor(ui, labels = yesno)
+  ht <- factor(ht, labels = yesno)
 })
+```
+
+- `low`: whether child's weight (`bwt`) is > 2.5 kg or not.
+- `ui`: presence of uterine irritability (mother).
+- `age`: mother's age (when enrolled in the study).
+
+```{r, echo = FALSE}
+options(show.signif.stars = FALSE)
 ```
 
 ---
 
 ```{r, message=FALSE}
 library(Hmisc)
-summary(low ~ age + race, data = birthwt)
+summary(low ~ age + ui, data = birthwt)
+```
+
+---
+
+```{r}
+m <- glm(low ~ age, data = birthwt, family = binomial("logit"))
+summary(m)
+```
+
+---
+
+```{r, echo=FALSE, fig.height=5, fig.align='center'}
+pp <- predict(m, type = "response")
+d <- data.frame(x = birthwt$age, y = birthwt$low, pp)
+d <- d[order(d$x),]
+xyplot(y ~ x,  data = d, xlab = "Age (years)", ylab = "Birth weight status", 
+       panel = function(x, y, ...) {
+         panel.grid(h = -1, v = -1)
+         panel.xyplot(x, jitter(y, amount = .02), col = "cornflowerblue", cex = .9, alpha = .5)
+         panel.xyplot(x, d$pp, type = "l", col = "coral", lwd = 2)         
+       })
+```
+
+
+## Fitted values
+
+```{r}
+set.seed(154)
+idx <- sample(1:nrow(birthwt), 5)
+birthwt$low[idx]
+predict(m)[idx]
+predict(m, type = "response")[idx]
+```
+
+## More than one predictor
+
+```{r}
+m2 <- glm(low ~ ui + age, data = birthwt, family = binomial("logit"))
+summary(m2)
+```
+
+---
+
+How to interpret the effet of `age` and `ui`?
+
+- When age increases by one unit and `ui = 0` (`No`), the log-odds decrease by -0.05; the adjusted odds-ratio equals `r round(exp(coef(m2)["age"]), 3)`. The corresponding OR for a 5-year increase is `r round(exp(5*coef(m2)["age"]), 3)`.
+- In presence of uterine irritability (`ui = 1`), the log-odds increase by 0.90, when age is held constant; the adjusted odds-ratio equals `r round(exp(coef(m2)["uiYes"]), 3)`.
+
+```{r, message = FALSE}
+exp(coef(m2)["uiYes"])
+exp(confint(m2)["uiYes",])
+```
+
+---
+
+Yet another way to compute the odds-ratio:
+
+```{r, message = FALSE}
+m3 <- glm(low ~ ui, data = birthwt, family = binomial("logit"))
+exp(coef(m3)["uiYes"])
+library(vcd)
+oddsratio(xtabs(~ low + ui, data = birthwt), log = FALSE)
 ```
 
 
