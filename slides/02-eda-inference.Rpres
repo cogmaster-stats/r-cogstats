@@ -1,7 +1,7 @@
 Data analysis and statistical inference
 ========================================================
 author: Christophe Lalanne
-date: October 14, 2014
+date: October 6, 2015
 css: custom.css
 
 ```{r, include=FALSE}

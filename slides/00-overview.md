@@ -1,7 +1,7 @@
 cogmaster-stats
 ========================================================
 author: Christophe Lalanne
-date: October 7th, 2014
+date: September 29th, 2015
 css: custom.css
 
 What you will learn
@@ -19,11 +19,11 @@ Organization
 ========================================================
 
 * Time: 9:00–11:00, every Tuesday
-* Prerequisites: basic math and experimental design (AMS, previous exposition)
+* Prerequisites: basic math and experimental design (AMS, previous exposition, or more?)
 * Statistical packages: R (sessions 1 to 7), Python (sessions 8 to 11)
 * Resources: Handouts available on Github, open access textbook
 * Homeworks: short quizzes to complete at home
-* Grading: 50% assignements, 50% final project
+* Grading: assignements + final project
 
 Website: http://cogmaster-stats.github.io/site
 
@@ -33,13 +33,13 @@ Schedule
 
 <small>Christophe Lalanne [R], Sylvain Charron [Py].</small>
 
-1. Introduction to R and data analysis (Oct. 7)
-2. Descriptive statistics, association measures (Oct. 14)
-3. Inferential statistics and two-group comparisons (Oct. 21)
-4. Experimental design and ANOVA (Nov. 4)
-5. Simple and multiple linear regression (Nov. 18)
-6. The linear model and its applications (Nov. 25)
-7. Categorical data and two-ways tables (Dec. 2)
+1. Introduction to R and data analysis (Sep. 29)
+2. Descriptive statistics, association measures (Oct. 6)
+3. Inferential statistics and two-group comparisons (Oct. 13)
+4. Experimental design and ANOVA (Oct. 20)
+5. Simple and multiple linear regression (Nov. 3)
+6. The linear model and its applications (Nov. 10)
+7. Categorical data and two-ways tables (Nov. 17)
 
 Sessions 8 to 11 with Python will consist in replicating analyses done in R.
 
@@ -56,6 +56,21 @@ http://www.openintro.org/stat/
 ---
 
 ![openintrostats](./img/openintrostats.png)
+
+
+Textbook (2)
+========================================================
+
+**Learning Statistics with R**  
+http://health.adelaide.edu.au/psychology/ccs/teaching/lsr/
+
+Once more
+* 10 to 15 pages to read
+* Focus on statistics applied to psy research
+
+---
+
+![lsr](./img/lsr.png)
 
 
 Setup

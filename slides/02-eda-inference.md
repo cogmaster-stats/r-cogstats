@@ -1,7 +1,7 @@
 Data analysis and statistical inference
 ========================================================
 author: Christophe Lalanne
-date: October 14, 2014
+date: October 6, 2015
 css: custom.css
 
 
@@ -213,7 +213,7 @@ One-sided vs. two-sided tests
 ========================================================
 
 
-![plot of chunk unnamed-chunk-10](02-eda-inference-figure/unnamed-chunk-10.png) 
+![plot of chunk unnamed-chunk-10](02-eda-inference-figure/unnamed-chunk-10-1.png) 
 
 ---
 
