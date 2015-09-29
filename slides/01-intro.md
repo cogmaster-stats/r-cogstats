@@ -1,7 +1,7 @@
 Working with data
 ========================================================
 author: Christophe Lalanne
-date: October 7th, 2014
+date: September 29th, 2015
 css: custom.css
 
 
@@ -106,7 +106,9 @@ Data analysis as an iterative process
 ========================================================
 
 ![](./img/fig-repl_stats.png)
-***
+
+---
+ 
 - importing
 - manipulating
 - plotting
