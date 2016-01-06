@@ -11,13 +11,18 @@ questions:
 2. Use box-and-whiskers charts or density plots to show the distribution of
    individual increase in the composite score for each treatment.
 
-3. Run a two-way ANOVA by considering increase factor score as the response
+3. Use a Student t-test (or Welch test, whichever seems more appropriate 
+   given the data) to compare average performance between participants 
+   win or without daycare experience. Is the difference significant at 
+   the 5% level? Provide an effect size measure.
+
+4. Run a two-way ANOVA by considering increase factor score as the response
    variable and Daycare and Age group as explanatory variables, with their
    interaction. (a) Use an interaction plot to summarize the main
    findings. (b) Is the interaction significant at the 5% level? (c) If not,
    summarize the effect of each factor (partial eta squared and p-value).
 
-4. Compare results obtained in (3) with those from a two-way ANOVA relying
+5. Compare results obtained in (4) with those from a two-way ANOVA relying
    on (a) Type II or (b) Type III sum of squares which are available in the
    Anova() command from the car R package (install.packages("car")) or the
    anova_lm() command from the statsmodels Python package. Are the results
